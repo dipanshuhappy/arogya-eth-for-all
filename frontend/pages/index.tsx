@@ -8,7 +8,6 @@ import {
   Heading,
   HStack,
   Link,
-  Skeleton,
   Stack,
   Text,
   VStack,
@@ -24,8 +23,7 @@ const CustomImage = chakra(NextImage, {
     borderRadius: 'lg',
     boxShadow: 'lg',
   },
-  shouldForwardProp: (prop) =>
-    ['src', 'alt', 'width', 'height'].includes(prop),
+  shouldForwardProp: (prop) => ['src', 'alt', 'width', 'height'].includes(prop),
 });
 
 const IndexPage = () => {
