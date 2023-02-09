@@ -1,6 +1,6 @@
-import { Box, Button, HStack, Link, Text } from '@chakra-ui/react';
-import { SlWallet } from 'react-icons/sl';
+import { Box, HStack, Link, Text } from '@chakra-ui/react';
 import Logo from '../logo';
+import WalletConnect from '../wallet-button';
 const Header = () => {
   return (
     <HStack
@@ -27,9 +27,7 @@ const Header = () => {
         <Link>About Us</Link>
       </HStack>
       <Box>
-        <Button leftIcon={<SlWallet />} variant='solid'>
-          Connect
-        </Button>
+        <WalletConnect marginInline={'auto'} />
       </Box>
     </HStack>
   );

@@ -74,6 +74,7 @@ const PageLayout = ({ title, description, children }: PageProps) => {
         exit='exit'
         variants={variants}
         centerContent
+        minW={'90%'}
       >
         {children}
       </MotionContainer>
