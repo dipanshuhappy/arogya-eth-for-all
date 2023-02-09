@@ -8,6 +8,7 @@ import { Actor, HyperActor } from "../lib/filecoin-solidity/contracts/v0.8/utils
 import { Misc } from "../lib/filecoin-solidity/contracts/v0.8/utils/Misc.sol";
 
 /* 
+Demo Change
 Contract Usage
     Step   |   Who   |    What is happening  |   Why 
     ------------------------------------------------
