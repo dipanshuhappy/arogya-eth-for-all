@@ -68,7 +68,6 @@ const PageLayout = ({ title, description, children }: PageProps) => {
         display='flex'
         maxW='container.lg'
         minH={{ base: 'auto', md: '100vh' }}
-        px={{ base: 4, lg: 8 }}
         initial='hidden'
         animate='enter'
         exit='exit'
