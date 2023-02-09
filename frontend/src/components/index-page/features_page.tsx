@@ -12,9 +12,7 @@ import {
   Center,
 } from '@chakra-ui/react';
 import WalletConnect from '../wallet-button';
-// import Logo1 from "/dipanshu.png";
-// import Logo2 from "../../public/nithin.png";
-// import Logo3 from "../../public/sudeep.png";
+
 
 function FeaturesPage(props) {
   return (
