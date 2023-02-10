@@ -110,10 +110,17 @@ function FeaturesPage(props) {
         </Flex>
       </Box>
 
-      <Box width={'90%'} height={'100%'} bg='white' marginInline={'auto'} marginTop={'1'} padding={'10' }borderRadius={'20' }>
-      <Stack direction={'row'} align={"Center"} spacing={"40"} justifyContent="space-evenly">
+      <Box width={'90%'} height={'50%'} bg='white' marginInline={'auto'} marginTop={'1'} padding={'10' }borderRadius={'20' }>
+      <Stack 
+
+      spacing={40}
+      marginInline={'auto'}
+      py={12}
+      align={'center'}
+      minW={'90%'}
+      direction={{ base: 'column', md: 'row' }}
+      >
       <Box
-        // maxW={'270px'}
         w={400}
         bg={mode('white', 'gray.800')}
         boxShadow={'2xl'}
