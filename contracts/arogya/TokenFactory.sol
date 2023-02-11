@@ -10,40 +10,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 // Every instance of the contract TokenFcatory requires two special property i) baseURI ii) name of the user iii) Unique identifier of the nft collection (integer)
 // Only the owner who will be deploying this contract can mint tokens of this nft collection
 
-contract ParentStorage {
-    // Array to store the addresses of all TokenFactory Contracts (TokenFactory is an nft collection)
-    address[] public TokenFactoryStorage;
-
-    uint256 public uid = 1;
-    // mapping of address of deployed TokenFactory Contract with the owner's public address
-    mapping(address => address) public accessMapping1;
-    mapping(address => address) public accessMapping2;
-    mapping(address => uint) public deployedFromAddress;
-
-    // Event to log the deployment of an TokenFactory Contract
-    event LogNFTDeployment(address address_new_TokenFactory);
-
-    // Function to deploy the TokenFactory Contract in the name of the user
-    function deployNFT(string memory baseURI, string memory ownerName) public {
-        require(deployedFromAddress[msg.sender] == 0);
-
-        // Create an instance of the TokenFactory Contract
-        TokenFactory new_TokenFactory = new TokenFactory(baseURI, ownerName, msg.sender, uid);
-
-        uid = uid + 1;
-
-        // Add the address of the newly deployed TokenFactory Contract to the mapping
-        TokenFactoryStorage.push(address(new_TokenFactory));
-
-        // do the access mapping
-        accessMapping1[address(new_TokenFactory)] = msg.sender;
-        accessMapping2[msg.sender] = address(new_TokenFactory);
-        deployedFromAddress[msg.sender] += 1;
-
-        // Log the deployment of the TokenFactory Contract
-        emit LogNFTDeployment(address(new_TokenFactory));
-    }
-}
 
 contract TokenFactory is ERC721Enumerable, Ownable {
     // Token Fcatory Characteristics
@@ -64,10 +30,10 @@ contract TokenFactory is ERC721Enumerable, Ownable {
     string _baseTokenURI;
 
     // Name of Owner
-    string _ownerName;
+    string public _ownerName;
 
     //Address of Owner
-    address _ownerAddress;
+    address public _ownerAddress;
 
     // Represents Id of Collection
     uint256 public _collectionId;
@@ -110,6 +76,8 @@ contract TokenFactory is ERC721Enumerable, Ownable {
         _ownerName = ownerName;
         _ownerAddress = ownerAddress;
         _collectionId = uid;
+
+        transferOwnership(ownerAddress);
     }
 
     function getContractBalance() public view onlyOwner returns (uint256) {
@@ -134,7 +102,8 @@ contract TokenFactory is ERC721Enumerable, Ownable {
         string memory _dataDescription,
         string memory _dataCid,
         string memory _dataUrl
-    ) public payable onlyWhenNotPaused {
+    ) public payable onlyWhenNotPaused onlyOwner {
+        require(msg.sender == _ownerAddress);
         require(tokenIds < maxTokenIds, "Exceed maximum Crypto Devs supply");
 
         tokenIds += 1;
