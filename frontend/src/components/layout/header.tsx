@@ -1,7 +1,9 @@
-import { Box, HStack, Link, Text } from '@chakra-ui/react';
+import { Box, Button, HStack, Link, Text, useColorMode,IconButton, Icon } from '@chakra-ui/react';
 import Logo from '../logo';
+import {MoonIcon, SunIcon} from '@chakra-ui/icons';
 import WalletConnect from '../wallet-button';
 const Header = () => {
+  const { colorMode, toggleColorMode } = useColorMode();
   return (
     <HStack
       as='header'
@@ -26,9 +28,15 @@ const Header = () => {
         <Link>How it works</Link>
         <Link>About Us</Link>
       </HStack>
+
+      <HStack spacing={6}>
+      <Button onClick={toggleColorMode}>
+         {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+      </Button>
       <Box>
         <WalletConnect marginInline={'auto'} />
       </Box>
+      </HStack>
     </HStack>
   );
 };
