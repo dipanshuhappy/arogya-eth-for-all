@@ -1,9 +1,32 @@
 import { Button, chakra } from '@chakra-ui/react';
 import { SlWallet } from 'react-icons/sl';
+import useToastCustom from 'src/hooks/useToastCustom';
+import { useAccount, useConnect } from 'wagmi';
+import { InjectedConnector } from 'wagmi/connectors/injected';
 function WalletConnectMinimum() {
+  const { successToast, errorToast } = useToastCustom();
+  const { address, isConnected } = useAccount();
+  const { connect, isSuccess } = useConnect({
+    chainId: 3141,
+    connector: new InjectedConnector(),
+
+    onSuccess() {
+      successToast('Account Connected !');
+    },
+    onError() {
+      errorToast('Error Connecting Account');
+    },
+  });
+
   return (
-    <Button leftIcon={<SlWallet />} variant='solid'>
-      Connect
+    <Button
+      leftIcon={<SlWallet />}
+      variant='solid'
+      onClick={() => {
+        connect();
+      }}
+    >
+      {isConnected ? 'Open Profile ' : 'Connect'}
     </Button>
   );
 }
