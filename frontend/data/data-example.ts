@@ -1,5 +1,3 @@
-import { TypeExample } from '@/types/type-example';
-
 export const dataExample: TypeExample[] = [
   {
     id: '1',
