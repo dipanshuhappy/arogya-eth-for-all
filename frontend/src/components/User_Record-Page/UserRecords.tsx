@@ -22,7 +22,7 @@ import Head from "next/head";
 import { useState } from "react";
 
 function UserRecords() {
-
+    const [Name, SetName] = useState("Nithin Varma")
     const [Age, SetAge] = useState("20");
     const [Blood, SetBlood] = useState("A+");
     const [Allergies, SetAllergies] = useState("NIL");
@@ -46,7 +46,7 @@ function UserRecords() {
                 >
                     <VStack>
                         <CardHeader>
-                            <Heading textAlign={'start'}>Name of The User</Heading>
+                            <Heading textAlign={'start'}>{Name}</Heading>
                         </CardHeader>
                         <CardBody>
                             <VStack
@@ -67,9 +67,10 @@ function UserRecords() {
                             {/* <Button colorScheme="blue">Sign up</Button> */}
                         </CardFooter>
                     </VStack>
-                    <Card bgColor={'#EBECF0'} padding={30}>
+                    <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
                         <CardHeader>
-                            <Heading textAlign={'start'}>Latest Document</Heading>
+                            <Text as='h1' textAlign={'start'}>Latest Document</Text><br/>
+                            <Heading as='h1' textAlign={'start'}>{Name}</Heading>
                         </CardHeader>
                         <CardBody>
                             <VStack align={'start'} spacing={8}>
@@ -102,9 +103,9 @@ function UserRecords() {
                     direction={{ base: 'column', md: 'row' }}
                 >
                     <VStack>
-                    <Card bgColor={'#EBECF0'} padding={30}>
+                    <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
                         <CardHeader>
-                            <Heading textAlign={'start'}>Latest Document</Heading>
+                            <Heading textAlign={'start'}>{Name}</Heading>
                         </CardHeader>
                         <CardBody>
                             <VStack align={'start'} spacing={8}>
@@ -123,9 +124,9 @@ function UserRecords() {
                     </Card>
                     </VStack>
                     
-                    <Card bgColor={'#EBECF0'} padding={30}>
+                    <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
                         <CardHeader>
-                            <Heading textAlign={'start'}>Latest Document</Heading>
+                            <Heading textAlign={'start'}>{Name}</Heading>
                         </CardHeader>
                         <CardBody>
                             <VStack align={'start'} spacing={8}>
