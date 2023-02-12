@@ -4,26 +4,19 @@ import {
   Button,
   Flex,
   Heading,
+  Image,
   Stack,
   Text,
-  Image,
   useColorModeValue as mode,
   VStack,
-  Center,
 } from '@chakra-ui/react';
 import WalletConnect from '../wallet-button';
 
-
 function FeaturesPage(props) {
   return (
-    <VStack
-      backgroundImage={'/assets/images/features_bg.png'}
-      spacing={8}
-      minW={'98vw'}
-    >
-      <Box width={'90%'} bg='white' marginInline={'auto'} marginTop='16'>
+    <VStack>
+      <Box width={'90%'} bg='white' marginTop='16'>
         <Flex
-          zIndex='tooltip'
           justify='space-between'
           align='center'
           w='100%'
@@ -110,165 +103,171 @@ function FeaturesPage(props) {
         </Flex>
       </Box>
 
-      <Box width={'90%'} height={'50%'} bg='white' marginInline={'auto'} marginTop={'1'} padding={'10' }borderRadius={'20' }>
-      <Stack 
-
-      spacing={40}
-      marginInline={'auto'}
-      py={12}
-      align={'center'}
-      minW={'90%'}
-      direction={{ base: 'column', md: 'row' }}
+      <Box
+        width={'90%'}
+        height={'50%'}
+        bg='white'
+        marginInline={'auto'}
+        marginTop={'1'}
+        padding={'10'}
+        borderRadius={'20'}
       >
-      <Box
-        w={400}
-        bg={mode('white', 'gray.800')}
-        boxShadow={'2xl'}
-        rounded={'md'}
-        padding={5}
-        overflow={'hidden'}>
-        <Image
-          h={'120px'}
-          w={'full'}
-          src={'/assets/images/chain.jpg'}
-          objectFit={'cover'}
-        /> 
-        <Flex justify={'center'} mt={-12}>
-          <Avatar
-            size={'xl'}
-            src={'/assets/images/dipanshu.png'}
-            // alt={'Author'}
-            css={{
-              border: '2px solid white',
-            }}
-          />
-        </Flex>
-
-        <Box p={10} m={1}>
-          <Stack spacing={2} align={'center'} mb={5}>
-            <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-              Dipanshu Singh
-            </Heading>
-            <Text color={'gray.500'}>Blockchain Developer</Text>
-          </Stack>
-
-          
-
-          <Button
-            w={'full'}
-            mt={8}
-            bg={mode('#151f21', 'gray.900')}
-            color={'white'}
+        <Stack
+          spacing={40}
+          marginInline={'auto'}
+          py={12}
+          align={'center'}
+          minW={'90%'}
+          direction={{ base: 'column', md: 'row' }}
+        >
+          <Box
+            w={400}
+            bg={mode('white', 'gray.800')}
+            boxShadow={'2xl'}
             rounded={'md'}
-            _hover={{
-              transform: 'translateY(-2px)',
-              boxShadow: 'lg',
-            }}>
-            Know more {'>>'}
-          </Button>
-        </Box>
-      </Box>
-      <Box
-        // maxW={'270px'}
-        w={400}
-        bg={mode('white', 'gray.800')}
-        boxShadow={'2xl'}
-        rounded={'md'}
-        padding={5}
-        overflow={'hidden'}>
-        <Image
-          h={'120px'}
-          w={'full'}
-          src={'/assets/images/chain.jpg'}
-          objectFit={'cover'}
-        /> 
-        <Flex justify={'center'} mt={-12}>
-          <Avatar
-            size={'xl'}
-            src={'/assets/images/nithin.png'}
-            // alt={'Author'}
-            css={{
-              border: '2px solid white',
-            }}
-          />
-        </Flex>
+            padding={5}
+            overflow={'hidden'}
+          >
+            <Image
+              h={'120px'}
+              w={'full'}
+              src={'/assets/images/chain.jpg'}
+              objectFit={'cover'}
+            />
+            <Flex justify={'center'} mt={-12}>
+              <Avatar
+                size={'xl'}
+                src={'/assets/images/dipanshu.png'}
+                // alt={'Author'}
+                css={{
+                  border: '2px solid white',
+                }}
+              />
+            </Flex>
 
-        <Box p={10} m={1}>
-          <Stack spacing={2} align={'center'} mb={5}>
-            <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-              Nithin Mengani
-            </Heading>
-            <Text color={'gray.500'}>Blockchain Developer</Text>
-          </Stack>
+            <Box p={10} m={1}>
+              <Stack spacing={2} align={'center'} mb={5}>
+                <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
+                  Dipanshu Singh
+                </Heading>
+                <Text color={'gray.500'}>Blockchain Developer</Text>
+              </Stack>
 
-          
-
-          <Button
-            w={'full'}
-            mt={8}
-            bg={mode('#151f21', 'gray.900')}
-            color={'white'}
+              <Button
+                w={'full'}
+                mt={8}
+                bg={mode('#151f21', 'gray.900')}
+                color={'white'}
+                rounded={'md'}
+                _hover={{
+                  transform: 'translateY(-2px)',
+                  boxShadow: 'lg',
+                }}
+              >
+                Know more {'>>'}
+              </Button>
+            </Box>
+          </Box>
+          <Box
+            // maxW={'270px'}
+            w={400}
+            bg={mode('white', 'gray.800')}
+            boxShadow={'2xl'}
             rounded={'md'}
-            _hover={{
-              transform: 'translateY(-2px)',
-              boxShadow: 'lg',
-            }}>
-            Know more {'>>'}
-          </Button>
-        </Box>
-      </Box>
-      <Box
-        // maxW={'270px'}
-        w={400}
-        bg={mode('white', 'gray.800')}
-        boxShadow={'2xl'}
-        rounded={'md'}
-        padding={5}
-        overflow={'hidden'}>
-        <Image
-          h={'120px'}
-          w={'full'}
-          src={'/assets/images/chain.jpg'}
-          objectFit={'cover'}
-        /> 
-        <Flex justify={'center'} mt={-12}>
-          <Avatar
-            size={'xl'}
-            src={'/assets/images/sudeep.jpeg'}
-            // alt={'Author'}
-            css={{
-              border: '2px solid white',
-            }}
-          />
-        </Flex>
+            padding={5}
+            overflow={'hidden'}
+          >
+            <Image
+              h={'120px'}
+              w={'full'}
+              src={'/assets/images/chain.jpg'}
+              objectFit={'cover'}
+            />
+            <Flex justify={'center'} mt={-12}>
+              <Avatar
+                size={'xl'}
+                src={'/assets/images/nithin.png'}
+                // alt={'Author'}
+                css={{
+                  border: '2px solid white',
+                }}
+              />
+            </Flex>
 
-        <Box p={10} m={1}>
-          <Stack spacing={2} align={'center'} mb={5}>
-            <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-              Sudeep XYZ
-            </Heading>
-            <Text color={'gray.500'}>Blockchain Developer</Text>
-          </Stack>
+            <Box p={10} m={1}>
+              <Stack spacing={2} align={'center'} mb={5}>
+                <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
+                  Nithin Mengani
+                </Heading>
+                <Text color={'gray.500'}>Blockchain Developer</Text>
+              </Stack>
 
-          
-
-          <Button
-            w={'full'}
-            mt={8}
-            bg={mode('#151f21', 'gray.900')}
-            color={'white'}
+              <Button
+                w={'full'}
+                mt={8}
+                bg={mode('#151f21', 'gray.900')}
+                color={'white'}
+                rounded={'md'}
+                _hover={{
+                  transform: 'translateY(-2px)',
+                  boxShadow: 'lg',
+                }}
+              >
+                Know more {'>>'}
+              </Button>
+            </Box>
+          </Box>
+          <Box
+            // maxW={'270px'}
+            w={400}
+            bg={mode('white', 'gray.800')}
+            boxShadow={'2xl'}
             rounded={'md'}
-            _hover={{
-              transform: 'translateY(-2px)',
-              boxShadow: 'lg',
-            }}>
-            Know more {'>>'}
-          </Button>
-        </Box>
-      </Box>
-      </Stack>
-      </Box>
+            padding={5}
+            overflow={'hidden'}
+          >
+            <Image
+              h={'120px'}
+              w={'full'}
+              src={'/assets/images/chain.jpg'}
+              objectFit={'cover'}
+            />
+            <Flex justify={'center'} mt={-12}>
+              <Avatar
+                size={'xl'}
+                src={'/assets/images/sudeep.jpeg'}
+                // alt={'Author'}
+                css={{
+                  border: '2px solid white',
+                }}
+              />
+            </Flex>
 
+            <Box p={10} m={1}>
+              <Stack spacing={2} align={'center'} mb={5}>
+                <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
+                  Sudeep XYZ
+                </Heading>
+                <Text color={'gray.500'}>Blockchain Developer</Text>
+              </Stack>
+
+              <Button
+                w={'full'}
+                mt={8}
+                bg={mode('#151f21', 'gray.900')}
+                color={'white'}
+                rounded={'md'}
+                _hover={{
+                  transform: 'translateY(-2px)',
+                  boxShadow: 'lg',
+                }}
+              >
+                Know more {'>>'}
+              </Button>
+            </Box>
+          </Box>
+        </Stack>
+      </Box>
     </VStack>
   );
 }
