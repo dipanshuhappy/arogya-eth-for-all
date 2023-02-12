@@ -11,14 +11,12 @@ const IndexPage = () => {
   return (
     <>
     <PageLayout
-      title='Home'
+      title='user_record'
       description='Discover a starter kit which includes Next.js, Chakra-UI, Framer-Motion in Typescript. You have few components, Internationalization, SEO and more in this template ! Enjoy coding.'
     >
-      <StartingPage />
-      <FeaturesPage />
+      <UserRecords />
 
     </PageLayout>
-    {/* <UserRecords /> */}
     </>
     
  
