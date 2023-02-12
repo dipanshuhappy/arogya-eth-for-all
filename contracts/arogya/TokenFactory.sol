@@ -10,15 +10,13 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 // Every instance of the contract TokenFcatory requires two special property i) baseURI ii) name of the user iii) Unique identifier of the nft collection (integer)
 // Only the owner who will be deploying this contract can mint tokens of this nft collection
 
-
 contract TokenFactory is ERC721Enumerable, Ownable {
-    
     /**
      * @dev _baseTokenURI for computing {tokenURI}. If set, the resulting URI for each
      * token will be the concatenation of the `baseURI` and the `tokenId`.
      */
-    
-    // Second Phase -> MarketPlace Implementation in another contract 
+
+    // Second Phase -> MarketPlace Implementation in another contract
     // // deals array contains all the buy deals this token Factory has recieved
     // struct BuyDeal {
     //     string name; // name of the buyer who has requested data access
@@ -29,10 +27,10 @@ contract TokenFactory is ERC721Enumerable, Ownable {
     // BuyDeal[] public buyDealsArray;
 
     // Token Factory Characteristics
-    bytes32  _baseTokenURI;
+    bytes32 _baseTokenURI;
 
     // Details of Owner Captured from Sign up page + while deploying
-    struct ownerDetailsType{
+    struct ownerDetailsType {
         // Name of Owner
         bytes32 _ownerName;
         //Address of Owner
@@ -92,15 +90,14 @@ contract TokenFactory is ERC721Enumerable, Ownable {
         _collectionId = uid;
 
         ownerDetails = ownerDetailsType({
-        _ownerName: ownerName,
-        _ownerAddress: ownerAddress,
-        _ownerAge: ownerAge,
-        _ownerBloodGroup: ownerBloodGroup,
-        _ownerAllergies: ownerAllergies,
-        _ownerMedication: ownerMedication,
-        _ownerAbout: ownerAbout
+            _ownerName: ownerName,
+            _ownerAddress: ownerAddress,
+            _ownerAge: ownerAge,
+            _ownerBloodGroup: ownerBloodGroup,
+            _ownerAllergies: ownerAllergies,
+            _ownerMedication: ownerMedication,
+            _ownerAbout: ownerAbout
         });
-
 
         transferOwnership(ownerAddress);
     }
@@ -113,7 +110,7 @@ contract TokenFactory is ERC721Enumerable, Ownable {
 
     // mapping(uint => BuyDeal[]) public buyDealsForTokenId; // buyDealsForTokenId[tokenId], contains all the BuyDeal Objects which have requested for tokenId
     mapping(uint => TokenDetail) public idDetailMap; // Mapping of Id with Details
-    
+
     struct TokenDetail {
         address _addressOfOwner;
         string _dataDescription;
@@ -144,10 +141,11 @@ contract TokenFactory is ERC721Enumerable, Ownable {
         });
         idDetailMap[tokenIds] = _newTokenDetail;
     }
-    
-    function getOwnerDetails() public view returns(ownerDetailsType memory){
-         return ownerDetails;
+
+    function getOwnerDetails() public view returns (ownerDetailsType memory) {
+        return ownerDetails;
     }
+
     /**
      * @dev _baseURI overides the Openzeppelin's ERC721 implementation which by default
      * returned an empty string for the baseURI
