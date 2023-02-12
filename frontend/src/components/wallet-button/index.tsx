@@ -21,10 +21,12 @@ function WalletConnectMinimum() {
   return (
     <Button
       leftIcon={<SlWallet />}
-      variant='solid'
+      backgroundColor={'brand.500'}
+      paddingInline={'2.4rem'}
       onClick={() => {
         connect();
       }}
+      color='brand.dark'
     >
       {isConnected ? 'Open Profile ' : 'Connect'}
     </Button>

@@ -4,26 +4,21 @@ import { mode } from '@chakra-ui/theme-tools';
 const styles = {
   global: (props) => ({
     body: {
-      bg: mode('#fff', '#2d3142')(props),
+      bg: mode('brand.light', 'brand.dark')(props),
     },
     p: {
-      color: mode('gray.800', 'white')(props),
+      color: mode('gray.900', 'white')(props),
     },
   }),
 };
 
 const colors = {
   brand: {
-    50: '#f6e8ff',
-    100: '#e3bdff',
-    200: '#cd94ff',
-    300: '#b46ef7',
-    400: '#9a4ce7',
-    500: '#7e31ce',
-    600: '#641eab',
-    700: '#4b1483',
-    800: '#341158',
-    900: '#1e0d2d',
+    500: '#69D3FA',
+
+    dark: '#18191A',
+
+    light: 'whitesmoke',
   },
 };
 
@@ -33,12 +28,9 @@ const fonts = {
 
 const components = {
   Button: {
-    variants: {
-      pill: (props) => ({
-        ...base.components.Button.variants.outline(props),
-        rounded: 'full',
-        color: 'gray.500',
-      }),
+    baseStyle: {
+      borderRadius: '0px',
+      backgroundColor: '#69D3FA',
     },
   },
 };
