@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 // Every instance of the contract TokenFcatory requires two special property i) baseURI ii) name of the user iii) Unique identifier of the nft collection (integer)
 // Only the owner who will be deploying this contract can mint tokens of this nft collection
 
-
 contract TokenFactory is ERC721Enumerable, Ownable {
     // Token Fcatory Characteristics
     /**
@@ -31,6 +30,9 @@ contract TokenFactory is ERC721Enumerable, Ownable {
 
     // Name of Owner
     string public _ownerName;
+
+    //TODO : Add user data struct
+    //Todo : User address to user data struct
 
     //Address of Owner
     address public _ownerAddress;
@@ -87,7 +89,7 @@ contract TokenFactory is ERC721Enumerable, Ownable {
     // Token Characteristics (TokenDetail, buyDealsForTokenId )
     mapping(uint => BuyDeal[]) public buyDealsForTokenId; // buyDealsForTokenId[tokenId], contains all the BuyDeal Objects which have requested for tokenId
     mapping(uint => TokenDetail) public idDetailMap; // Mapping of Id with Details
-    
+
     struct TokenDetail {
         string dataDescription;
         string dataCid;
