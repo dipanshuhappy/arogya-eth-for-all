@@ -12,6 +12,7 @@ import "./TokenFactory.sol";
 // Only the owner who will be deploying this contract can mint tokens of this nft collection
 
 contract ParentStorage {
+
     // Array to store the addresses of all TokenFactory Contracts (TokenFactory is an nft collection)
     address[] public TokenFactoryStorage;
 
@@ -25,11 +26,29 @@ contract ParentStorage {
     event LogNFTDeployment(address address_new_TokenFactory);
 
     // Function to deploy the TokenFactory Contract in the name of the user
-    function deployNFT(string memory baseURI, string memory ownerName) public {
+    function deployNFT(
+        bytes32 baseURI,
+        bytes32 ownerName,
+        uint256 ownerAge,
+        bytes32 ownerBloodGroup,
+        bytes32 ownerAllergies,
+        bytes32 ownerMedication,
+        bytes32 ownerAbout
+    ) public {
         require(deployedFromAddress[msg.sender] == 0);
 
         // Create an instance of the TokenFactory Contract
-        TokenFactory new_TokenFactory = new TokenFactory(baseURI, ownerName, msg.sender, uid);
+        TokenFactory new_TokenFactory = new TokenFactory(
+            baseURI,
+            ownerName,
+            msg.sender,
+            ownerAge,
+            ownerBloodGroup,
+            ownerAllergies,
+            ownerMedication,
+            ownerAbout,
+            uid
+        );
 
         uid = uid + 1;
 
@@ -47,5 +66,5 @@ contract ParentStorage {
 
     function getAddresses() public view returns (address[] memory) {
         return TokenFactoryStorage;
-    } 
+    }
 }
