@@ -1,3 +1,4 @@
+import { LinkIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -15,7 +16,8 @@ import {
   CardBody,
   CardHeader,
   extendTheme,
-  Divider
+  Divider,
+  Avatar
 } from "@chakra-ui/react";
 
 import Head from "next/head";
@@ -89,12 +91,12 @@ function UserRecords() {
                     </Card>
                 </Stack>
             </Card>
-           <Divider/>
+          
            
-        <Heading as='u'>Previous Documents:</Heading>
-        <Card  color={'white'} w={'1000px'}>
+        <Heading as='u'>Previous Documents:</Heading><br/>
+        <Card  color={'white'} w={'1000px'} marginTop={'10'}>
                 <Stack
-                    spacing={'150'}
+                    spacing={'15'}
                     marginInline={'auto'}
                     py={12}
                     align='center'
@@ -102,7 +104,7 @@ function UserRecords() {
                     // minW={'90%'}
                     direction={{ base: 'column', md: 'row' }}
                 >
-                    <VStack>
+                    <HStack spacing={1}  direction={{ base: 'column', md: 'row' }}>
                     <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
                         <CardHeader>
                             <Heading textAlign={'start'}>{Name}</Heading>
@@ -122,7 +124,14 @@ function UserRecords() {
                             </CardFooter>
                         </Center>
                     </Card>
-                    </VStack>
+                    <Image 
+                    src={'./assets/images/chain-link-icon.svg'}
+                    h={'120px'}
+                    // w={'full'}
+                    />
+
+                    </HStack>
+                   
                     
                     <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
                         <CardHeader>

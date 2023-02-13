@@ -96,7 +96,7 @@ function FeatureItemRight() {
 }
 function FeaturesPage() {
   return (
-    <VStack>
+    <VStack spacing={'150'}>
       <Box width={'90%'} bg='white' marginTop='16'></Box>
       <Box width={'90%'} bg='white' marginInline={'auto'} marginTop='16'>
         <FeatureItemLeft />
@@ -106,7 +106,7 @@ function FeaturesPage() {
       <Box
         width={'90%'}
         height={'50%'}
-        bg='white'
+        // bg='white'
         marginInline={'auto'}
         marginTop={'1'}
         padding={'10'}

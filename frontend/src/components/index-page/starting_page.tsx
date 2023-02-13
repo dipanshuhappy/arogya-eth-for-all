@@ -45,7 +45,7 @@ function StartingPage(props) {
             </Text>
           </Heading>
 
-          <Divider backgroundColor={'brand.500'} />
+          {/* <Divider backgroundColor={'brand.500'} /> */}
 
           <Text color='gray.500' align='justify'>
             <Trans i18nKey='excerpt'>
