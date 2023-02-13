@@ -1,2 +1,10 @@
-export const GITHUB_PROFILE = 'https://www.github.com/hakkaofdev';
-export const WEBSITE = 'https://www.hakkaofdev.fr';
+export const BLOODGROUPS = [
+  'A+',
+  'A-',
+  'B+',
+  'B-',
+  'O+',
+  'O-',
+  'AB+',
+  'AB-',
+] as const;

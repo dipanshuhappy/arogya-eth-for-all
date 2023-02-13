@@ -1,4 +1,5 @@
 import PageLayout from '@/components/page-layout';
+import { User } from '@/types/user';
 import {
   Box,
   Button,
@@ -11,7 +12,10 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react';
+import { useState } from 'react';
+import { BLOODGROUPS } from 'src/constants';
 function index() {
+  const [user, setUser] = useState<User>({} as User);
   return (
     <PageLayout title='Sign Up' description='Sign up to med chain'>
       <Stack
@@ -36,21 +40,51 @@ function index() {
           <VStack margin={'8%'} spacing={8}>
             <InputGroup>
               <InputLeftAddon children='Full Name' />
-              <Input required type='text' placeholder='phone number' />
+              <Input
+                required
+                type='text'
+                value={user.fullName}
+                onChange={(e) => {
+                  setUser({
+                    ...user,
+                    fullName: e.target.value,
+                  });
+                }}
+                placeholder='phone number'
+              />
             </InputGroup>
             <InputGroup>
               <InputLeftAddon children='Age' />
-              <Input required type='number' placeholder='phone number' />
+              <Input
+                value={user.age}
+                onChange={(e) => {
+                  9;
+                  setUser({
+                    ...user,
+                    age: parseInt(e.target.value),
+                  });
+                }}
+                required
+                type='number'
+                placeholder='Age'
+              />
             </InputGroup>
             <SelectDefault required placeholder='Blood Group'>
-              <option value='option1'>Option 1</option>
-              <option value='option2'>Option 2</option>
-              <option value='option3'>Option 3</option>
+              {BLOODGROUPS.map((group) => (
+                <option value={group}>{group}</option>
+              ))}
             </SelectDefault>
             <Text textAlign={'left'} width='100%' mb='8px'></Text>
             <InputGroup>
               <InputLeftAddon children='Allergies' />
               <Input
+                value={user.allergies}
+                onChange={(e) => {
+                  setUser({
+                    ...user,
+                    allergies: e.target.value,
+                  });
+                }}
                 type='text'
                 placeholder='Sperate the different Allergies using comma'
               />
@@ -58,6 +92,13 @@ function index() {
             <InputGroup>
               <InputLeftAddon children='Medications' />
               <Input
+                value={user.medication}
+                onChange={(e) => {
+                  setUser({
+                    ...user,
+                    medication: e.target.value,
+                  });
+                }}
                 type='text'
                 placeholder='   Sperate the different medication using comma'
               />
@@ -65,6 +106,13 @@ function index() {
             <Textarea
               placeholder=' About Your self'
               size='sm'
+              value={user.about}
+              onChange={(e) => {
+                setUser({
+                  ...user,
+                  about: e.target.value,
+                });
+              }}
               resize='none'
               colorScheme={'blackAlpha'}
               variant={'filled'}
