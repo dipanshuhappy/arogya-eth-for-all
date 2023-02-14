@@ -17,13 +17,27 @@ import {
   CardHeader,
   extendTheme,
   Divider,
-  Avatar
+  Avatar,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useColorModeValue,
+  useDisclosure,
+  FormControl,
+  FormLabel,
+  Input
 } from "@chakra-ui/react";
 
 import Head from "next/head";
 import { useState } from "react";
 
 function UserRecords() {
+    const { isOpen, onOpen, onClose } = useDisclosure()
+    
     const [Name, SetName] = useState("Nithin Varma")
     const [Age, SetAge] = useState("20");
     const [Blood, SetBlood] = useState("A+");
@@ -88,9 +102,34 @@ function UserRecords() {
                                 <Button colorScheme='teal' variant='solid'>Open File</Button>
                             </CardFooter>
                         </Center>
-                    </Card>
-                </Stack>
-            </Card>
+                        </Card>
+                        </Stack>
+                    
+                    <Button onClick={onOpen} color={'red'}>Upload New Document Here</Button>
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>New Document</ModalHeader>
+          <ModalCloseButton />
+          <FormControl>
+          <FormLabel>Document Upload</FormLabel>
+          <Input 
+          type="file"
+          />
+          </FormControl>
+         
+
+          <ModalFooter>
+            <Button colorScheme='blue' mr={3} onClick={onClose}>
+              Close
+            </Button>
+            <Button variant='ghost'>Secondary Action</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+     
+</Card>
           
            
         <Heading as='u'>Previous Documents:</Heading><br/>
