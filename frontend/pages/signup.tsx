@@ -42,7 +42,7 @@ function index() {
       safeStringToBytes32(user?.about) as `0x${string}`,
     ],
     enabled: enable,
-    onSuccess() {
+    onSettled() {
       router.push('/profile');
     },
   });
