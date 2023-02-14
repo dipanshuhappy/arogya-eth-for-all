@@ -1,0 +1,24 @@
+require("hardhat-deploy")
+require("hardhat-deploy-ethers")
+require("dotenv").config()
+
+const { networkConfig } = require("../helper-hardhat-config")
+
+const private_key = network.config.accounts[0]
+const wallet = new ethers.Wallet(private_key, ethers.provider)
+
+module.exports = async ({ deployments }) => {
+    
+    console.log("Wallet Ethereum Address:", wallet.address)
+    const chainId = network.config.chainId
+    const tokensToBeMinted = networkConfig[chainId]["tokensToBeMinted"]
+
+    //deploy ParentStorage
+    const ParentStorage = await ethers.getContractFactory('ParentStorage', wallet);
+    console.log('Deploying ParentStorage...');
+    const demoUid = 1;
+    const parentStorage = await ParentStorage.deploy(demoUid);
+    await parentStorage.deployed()
+    console.log('ParentStorage deployed to:', parentStorage.address);
+
+}
