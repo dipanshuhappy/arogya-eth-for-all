@@ -12,14 +12,12 @@ import {
   Stack,
   Textarea,
 } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { BLOODGROUPS } from 'src/constants';
 import { BASEURI, PARENTCONTRACT } from 'src/data';
 import useToastCustom from 'src/hooks/useToastCustom';
 import {
-  useAccount,
-  useContract,
-  useContractRead,
   useContractWrite,
   usePrepareContractWrite,
   useWaitForTransaction,
@@ -29,6 +27,7 @@ function index() {
   const [user, setUser] = useState<User>({} as User);
   // console.log({ user });
   const [enable, setEnable] = useState(false);
+  const router = useRouter();
   const { config } = usePrepareContractWrite({
     address: PARENTCONTRACT,
     abi: ParentStorageABI,
@@ -43,27 +42,17 @@ function index() {
       safeStringToBytes32(user?.about) as `0x${string}`,
     ],
     enabled: enable,
+    onSuccess() {
+      router.push('/profile');
+    },
   });
   const { successToast } = useToastCustom();
-  const { data, write, writeAsync } = useContractWrite(config);
-  const { data: dataRead } = useContract({
-    address: PARENTCONTRACT,
-    abi: ParentStorageABI,
-  });
-  const { address } = useAccount();
-  console.log({ dataRead });
+  const { data, write } = useContractWrite(config);
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,
   });
-  const contractRead = useContractRead({
-    address: PARENTCONTRACT,
-    abi: ParentStorageABI,
-    functionName: 'accessMapping2',
-    args: [address],
-  });
-  console.log({ contractRead });
+
   const submit = () => {
-    console.log({ dataRead });
     setEnable(!enable);
     console.log({ data });
     write?.();
