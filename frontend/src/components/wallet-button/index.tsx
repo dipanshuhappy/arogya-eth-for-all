@@ -5,7 +5,7 @@ import { EMPTY_BYTES, PARENTCONTRACT } from 'src/data';
 import useToastCustom from 'src/hooks/useToastCustom';
 import { useAccount, useConnect, useContractRead } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
-import { abi as ParentStorageABI } from '../../../abi/ParentStorage.json';
+import { abi as ParentStorageABI } from '../../abi/ParentStorage.json';
 function WalletConnectMinimum() {
   const router = useRouter();
   const { successToast, errorToast } = useToastCustom();

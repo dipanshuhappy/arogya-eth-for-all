@@ -22,7 +22,8 @@ import {
   usePrepareContractWrite,
   useWaitForTransaction,
 } from 'wagmi';
-import { abi as ParentStorageABI } from '../abi/ParentStorage.json';
+import { abi as ParentStorageABI } from '../src/abi/ParentStorage.json';
+
 function index() {
   const [user, setUser] = useState<User>({} as User);
   // console.log({ user });
