@@ -12,6 +12,8 @@ import "./TokenFactory.sol";
 // Only the owner who will be deploying this contract can mint tokens of this nft collection
 
 contract ParentStorage {
+     
+    uint256 public _demoUid;
 
     // Array to store the addresses of all TokenFactory Contracts (TokenFactory is an nft collection)
     address[] public TokenFactoryStorage;
@@ -25,6 +27,9 @@ contract ParentStorage {
     // Event to log the deployment of an TokenFactory Contract
     event LogNFTDeployment(address address_new_TokenFactory);
 
+    constructor(uint256 demoUid){
+        _demoUid = demoUid;
+    }
     // Function to deploy the TokenFactory Contract in the name of the user
     function deployNFT(
         bytes32 baseURI,
