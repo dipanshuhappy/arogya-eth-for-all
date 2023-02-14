@@ -23,13 +23,22 @@ import {
   FormLabel,
   IconButton,
   Input,
-  useColorModeValue
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useColorModeValue,
+  useDisclosure
 } from "@chakra-ui/react";
 
 import Head from "next/head";
 import { useState } from "react";
 
 function UserInput() {
+   const { isOpen, onOpen, onClose } = useDisclosure()
 
     const [UserName, SetUserName] = useState("");
     const [Age, SetAge] = useState("");
@@ -138,6 +147,29 @@ function UserInput() {
           </Button>
         </Stack>
       </Stack>
+      <Button onClick={onOpen}>Open Modal</Button>
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Modal Title</ModalHeader>
+          <ModalCloseButton />
+          <FormControl>
+          <FormLabel>Document Upload</FormLabel>
+          <Input 
+          type="file"
+          />
+          </FormControl>
+         
+
+          <ModalFooter>
+            <Button colorScheme='blue' mr={3} onClick={onClose}>
+              Close
+            </Button>
+            <Button variant='ghost'>Secondary Action</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Flex>
         </>
         
