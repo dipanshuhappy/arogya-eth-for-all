@@ -1,3 +1,4 @@
+import { User } from "@/types/user";
 import { LinkIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -29,7 +30,8 @@ import {
   useDisclosure,
   FormControl,
   FormLabel,
-  Input
+  Input,
+  Checkbox
 } from "@chakra-ui/react";
 
 import Head from "next/head";
@@ -48,14 +50,9 @@ function UserRecords() {
       )
 
     const [overlay, setOverlay] = useState(<OverlayOne />);
+    // const [user, setUser] = useState<User>({} as User);
+    const [user, setUser] = useState<User>({} as User)
     
-    const [Name, SetName] = useState("Nithin Varma")
-    const [Age, SetAge] = useState("20");
-    const [Blood, SetBlood] = useState("A+");
-    const [Allergies, SetAllergies] = useState("NIL");
-    const [Medications, SetMedications] = useState("NIL");
-    const [About, SetAbout] = useState("Nithin Varma ");
-
     return (
 
         <>
@@ -127,13 +124,71 @@ function UserRecords() {
                     <Modal isCentered isOpen={isOpen} onClose={onClose}>
                         {overlay}
                         <ModalContent>
-                            <ModalHeader>Upload Document Here</ModalHeader>
+                            <ModalHeader>Please Fill The Below Details</ModalHeader>
                             <ModalCloseButton />
+                            
                             <ModalBody>
                                 {/* <Text>Custom backdrop filters!</Text> */}
-                                <Input
-                                type ='file'
-                                />
+                                <Stack spacing={'5'}>
+                                
+                                <FormControl id='Title' isRequired>
+                                    <FormLabel>Title</FormLabel>
+                                    <Input
+                                    placeholder='title'
+                                    _placeholder={{ color: 'gray.500' }}
+                                    type='text'
+                                    // value={user.fullName}
+                                    // onChange={(e) => {
+                                    //     setUser({
+                                    //         ...user
+                                    //         fullName: e.target.value,
+                                    //     });
+                                    // }}
+                                    />
+                                </FormControl>
+                                <FormControl id='hospital_name' isRequired>
+                                    <FormLabel>Issued By (Hospital)</FormLabel>
+                                    <Input
+                                    type='text'
+                                    placeholder="hospital name here"
+                                    _placeholder={{ color: 'gray.500' }}
+                                    />
+                                </FormControl>
+                                <FormControl id='doctor_name' isRequired>
+                                    <FormLabel>Issued By (Doctor)</FormLabel>
+                                    <Input
+                                    type='text'
+                                    placeholder="doctor name here"
+                                    _placeholder={{ color: 'gray.500' }}
+                                    />
+                                </FormControl>
+                                <FormControl id='tag' isRequired>
+                                    <FormLabel>Tag</FormLabel>
+                                    <Input
+                                    type='text'
+                                    placeholder="tag here"
+                                    _placeholder={{ color: 'gray.500' }}
+                                    />
+                                </FormControl>
+                                <FormControl id='issued_date' isRequired>
+                                    <FormLabel>Date of Issued</FormLabel>
+                                    <Input
+                                    type='text'
+                                    placeholder="Issued date here"
+                                    _placeholder={{ color: 'gray.500' }}
+                                    />
+                                </FormControl>
+                                <FormControl id='document_upload' isRequired>
+                                    <FormLabel>Upload Document Here</FormLabel>
+                                    <Input
+                                    type='file'
+                                    placeholder="upload recent document"
+                                    _placeholder={{ color: 'gray.500' }}
+                                    />
+                                </FormControl>
+                                <Checkbox isRequired>I am sure that I have submitted my valid document</Checkbox>
+                                </Stack>
+                               
                                 </ModalBody>
                                 <ModalFooter>
                                     <HStack spacing={'6'}>
