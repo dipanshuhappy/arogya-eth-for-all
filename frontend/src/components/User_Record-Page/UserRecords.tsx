@@ -1,5 +1,6 @@
-import { User } from '@/types/user';
+import { Doc_User, User } from '@/types/user';
 import { deserialiseUser } from '@/utils/deserialise';
+
 import {
   Box,
   Button,
@@ -8,6 +9,7 @@ import {
   CardFooter,
   CardHeader,
   Center,
+  Checkbox,
   FormControl,
   FormLabel,
   Heading,
@@ -15,6 +17,7 @@ import {
   Image,
   Input,
   Modal,
+  ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalFooter,
@@ -34,6 +37,13 @@ import { useContractRead } from 'wagmi';
 import { abi as TokenFactoryABI } from '../../abi/TokenFactory.json';
 function UserRecords() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const OverlayOne = () => (
+    <ModalOverlay bg='none' backdropFilter='auto' backdropBlur='5px' />
+  );
+
+  const [overlay, setOverlay] = useState(<OverlayOne />);
+  const [doc_user, setDoc_user] = useState<Doc_User>({} as Doc_User);
   const [user, setUser] = useState<User>({} as User);
   const { tokenAddress } = useGetTokenAddress();
   console.log({ tokenAddress });
@@ -67,12 +77,10 @@ function UserRecords() {
           marginBottom={'24'}
         >
           <Stack
-            spacing={'150'}
+            spacing={{ base: '', md: '200' }}
             marginInline={'auto'}
             py={12}
             align='center'
-            // h='100vh'
-            // minW={'90%'}
             direction={{ base: 'column', md: 'row' }}
           >
             <VStack>
@@ -84,7 +92,7 @@ function UserRecords() {
                   spacing={8}
                   align='start'
                   w={{ base: '100%', md: '50%' }}
-                  py={{ base: 20, md: 0 }}
+                  // py={{ base: 20, md: 0 }}
                 >
                   <Text as='b'>Age: {user.age}</Text>
                   <Text as='b'>Blood_Group: {user.bloodGroup}</Text>
@@ -104,7 +112,7 @@ function UserRecords() {
                 </Text>
                 <br />
                 <Heading as='h1' textAlign={'start'}>
-                  {user.fullName}
+                  "fksldjf"
                 </Heading>
               </CardHeader>
               <CardBody>
@@ -124,26 +132,118 @@ function UserRecords() {
               </Center>
             </Card>
           </Stack>
-
-          <Button onClick={onOpen} color={'red'}>
-            Upload New Document Here
-          </Button>
-
-          <Modal isOpen={isOpen} onClose={onClose}>
-            <ModalOverlay />
+          <Center>
+            <Button
+              size='md'
+              // border='2px'
+              boxShadow={'dark-lg'}
+              borderColor='black'
+              marginBottom={'15'}
+              colorScheme={'whatsapp'}
+              onClick={() => {
+                setOverlay(<OverlayOne />);
+                onOpen();
+              }}
+            >
+              Upload New Document Here
+            </Button>
+          </Center>
+          <Modal isCentered isOpen={isOpen} onClose={onClose}>
+            {overlay}
             <ModalContent>
-              <ModalHeader>New Document</ModalHeader>
+              <ModalHeader>Please Fill The Be Details</ModalHeader>
               <ModalCloseButton />
-              <FormControl>
-                <FormLabel>Document Upload</FormLabel>
-                <Input type='file' />
-              </FormControl>
 
+              <ModalBody>
+                {/* <Text>Custom backdrop filters!</Text> */}
+                <Stack spacing={'5'}>
+                  <FormControl id='Title' isRequired>
+                    <FormLabel>Title</FormLabel>
+                    <Input
+                      placeholder='title'
+                      _placeholder={{ color: 'gray.500' }}
+                      type='text'
+                      value={doc_user.title}
+                      onChange={(e) => {
+                        setDoc_user({
+                          ...doc_user,
+                          title: e.target.value,
+                        });
+                      }}
+                    />
+                  </FormControl>
+                  <FormControl id='hospital_name' isRequired>
+                    <FormLabel>Issued By (Hospital)</FormLabel>
+                    <Input
+                      type='text'
+                      placeholder='hospital name here'
+                      _placeholder={{ color: 'gray.500' }}
+                      value={doc_user.Issued_By_Hospital}
+                      onChange={(e) => {
+                        setDoc_user({
+                          ...doc_user,
+                          Issued_By_Hospital: e.target.value,
+                        });
+                      }}
+                    />
+                  </FormControl>
+                  <FormControl id='doctor_name' isRequired>
+                    <FormLabel>Issued By (Doctor)</FormLabel>
+                    <Input
+                      type='text'
+                      placeholder='doctor name here'
+                      _placeholder={{ color: 'gray.500' }}
+                      value={doc_user.Issued_By_Doctor}
+                      onChange={(e) => {
+                        setDoc_user({
+                          ...doc_user,
+                          Issued_By_Doctor: e.target.value,
+                        });
+                      }}
+                    />
+                  </FormControl>
+                  <FormControl id='tag' isRequired>
+                    <FormLabel>Tag</FormLabel>
+                    <Input
+                      type='text'
+                      placeholder='tag here'
+                      _placeholder={{ color: 'gray.500' }}
+                      value={doc_user.Tag}
+                      onChange={(e) => {
+                        setDoc_user({
+                          ...doc_user,
+                          Tag: e.target.value,
+                        });
+                      }}
+                    />
+                  </FormControl>
+                  <FormControl id='issued_date' isRequired>
+                    <FormLabel>Date of Issued</FormLabel>
+                    <Input
+                      type='Date'
+                      placeholder='Issued date here'
+                      _placeholder={{ color: 'gray.500' }}
+                      // value={doc_user.Date_of_Issued}
+                    />
+                  </FormControl>
+                  <FormControl id='document_upload' isRequired>
+                    <FormLabel>Upload Document Here</FormLabel>
+                    <Input
+                      type='file'
+                      placeholder='upload recent document'
+                      _placeholder={{ color: 'gray.500' }}
+                    />
+                  </FormControl>
+                  <Checkbox isRequired>
+                    I am sure that I have submitted my valid document
+                  </Checkbox>
+                </Stack>
+              </ModalBody>
               <ModalFooter>
-                <Button colorScheme='blue' mr={3} onClick={onClose}>
-                  Close
-                </Button>
-                <Button variant='ghost'>Secondary Action</Button>
+                <HStack spacing={'6'}>
+                  <Button onClick={onClose}>Close</Button>
+                  <Button>Submit</Button>
+                </HStack>
               </ModalFooter>
             </ModalContent>
           </Modal>
