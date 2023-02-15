@@ -1,4 +1,5 @@
 import { User } from '@/types/user';
+import { deserialiseUser } from '@/utils/deserialise';
 import {
   Box,
   Button,
@@ -42,7 +43,11 @@ function UserRecords() {
     functionName: 'getOwnerDetails',
   });
   console.log({ data });
-  useEffect(() => {}, []);
+  useEffect(() => {
+    if (data) {
+      setUser(deserialiseUser(data));
+    }
+  }, [data]);
   // const [Name, SetName] = useState("Nithin Varma")
   // const [Age, SetAge] = useState("20");
   // const [Blood, SetBlood] = useState("A+");
