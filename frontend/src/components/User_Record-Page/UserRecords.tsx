@@ -37,6 +37,17 @@ import { useState } from "react";
 
 function UserRecords() {
     const { isOpen, onOpen, onClose } = useDisclosure()
+   
+
+    const OverlayOne = () => (
+        <ModalOverlay
+          bg='none'
+          backdropFilter='auto'
+          backdropBlur='5px'
+        />
+      )
+
+    const [overlay, setOverlay] = useState(<OverlayOne />);
     
     const [Name, SetName] = useState("Nithin Varma")
     const [Age, SetAge] = useState("20");
@@ -52,13 +63,12 @@ function UserRecords() {
             {/* <Center> */}
             <Card bgColor={'teal'} color={'white'} w={'1000px'} letterSpacing={'normal'} marginBottom={'24'}>
                 <Stack
-                    spacing={'150'}
+                    spacing={{base:'', md:'200'}}
                     marginInline={'auto'}
                     py={12}
                     align='center'
-                    // h='100vh'
-                    // minW={'90%'}
                     direction={{ base: 'column', md: 'row' }}
+              
                 >
                     <VStack>
                         <CardHeader>
@@ -69,7 +79,7 @@ function UserRecords() {
                                 spacing={8}
                                 align='start'
                                 w={{ base: '100%', md: '50%' }}
-                                py={{ base: 20, md: 0 }}
+                                // py={{ base: 20, md: 0 }}
                             >
                                 <Text as='b'>Age: {Age}</Text>
                                 <Text as='b'>Blood_Group: {Blood}</Text>
@@ -104,32 +114,36 @@ function UserRecords() {
                         </Center>
                         </Card>
                         </Stack>
-                    
-                    <Button onClick={onOpen} color={'red'}>Upload New Document Here</Button>
-
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>New Document</ModalHeader>
-          <ModalCloseButton />
-          <FormControl>
-          <FormLabel>Document Upload</FormLabel>
-          <Input 
-          type="file"
-          />
-          </FormControl>
-         
-
-          <ModalFooter>
-            <Button colorScheme='blue' mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button variant='ghost'>Secondary Action</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-     
-</Card>
+                        <Center>
+                        <Button 
+                        size='md'
+                        // border='2px'
+                        boxShadow={'dark-lg'}
+                        borderColor='black'
+                        marginBottom={'15'}
+                        colorScheme={'whatsapp'}  onClick={() => { setOverlay(<OverlayOne />)
+                        onOpen()
+                    }}>Upload New Document Here</Button></Center>
+                    <Modal isCentered isOpen={isOpen} onClose={onClose}>
+                        {overlay}
+                        <ModalContent>
+                            <ModalHeader>Upload Document Here</ModalHeader>
+                            <ModalCloseButton />
+                            <ModalBody>
+                                {/* <Text>Custom backdrop filters!</Text> */}
+                                <Input
+                                type ='file'
+                                />
+                                </ModalBody>
+                                <ModalFooter>
+                                    <HStack spacing={'6'}>
+                                    <Button onClick={onClose}>Close</Button>
+                                    <Button>Submit</Button>
+                                    </HStack>
+                            </ModalFooter>
+                        </ModalContent>
+                </Modal>
+        </Card>
           
            
         <Heading as='u'>Previous Documents:</Heading><br/>
