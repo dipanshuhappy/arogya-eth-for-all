@@ -25,12 +25,24 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
+import { useContractRead } from 'wagmi';
+
+import { abi as TokenFactoryABI } from '../../abi/TokenFactory.json';
 function UserRecords() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [user, setUser] = useState<User>({} as User);
-
+  const { tokenAddress } = useGetTokenAddress();
+  console.log({ tokenAddress });
+  const { data } = useContractRead({
+    address: tokenAddress as `0x${string}`,
+    abi: TokenFactoryABI,
+    functionName: 'getOwnerDetails',
+  });
+  console.log({ data });
+  useEffect(() => {}, []);
   // const [Name, SetName] = useState("Nithin Varma")
   // const [Age, SetAge] = useState("20");
   // const [Blood, SetBlood] = useState("A+");

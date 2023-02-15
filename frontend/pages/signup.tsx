@@ -1,4 +1,5 @@
 import PageLayout from '@/components/page-layout';
+import { TokenAddressContext } from '@/providers/TokenAddressProvider';
 import { User } from '@/types/user';
 import { safeIntToBigNumber, safeStringToBytes32 } from '@/utils/converter';
 import {
@@ -13,25 +14,27 @@ import {
   Textarea,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
+import { ParentStorageAbi } from 'src/abi';
 import { BLOODGROUPS } from 'src/constants';
 import { BASEURI, PARENTCONTRACT } from 'src/data';
+import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
 import useToastCustom from 'src/hooks/useToastCustom';
 import {
   useContractWrite,
   usePrepareContractWrite,
   useWaitForTransaction,
 } from 'wagmi';
-import { abi as ParentStorageABI } from '../src/abi/ParentStorage.json';
 
 function index() {
   const [user, setUser] = useState<User>({} as User);
-  // console.log({ user });
+  const { tokenAddress } = useGetTokenAddress();
   const [enable, setEnable] = useState(false);
+  const { setTokenAddress } = useContext(TokenAddressContext);
   const router = useRouter();
   const { config } = usePrepareContractWrite({
     address: PARENTCONTRACT,
-    abi: ParentStorageABI,
+    abi: ParentStorageAbi,
     functionName: 'deployNFT',
     args: [
       safeStringToBytes32(BASEURI) as `0x${string}`,
@@ -43,23 +46,29 @@ function index() {
       safeStringToBytes32(user?.about) as `0x${string}`,
     ],
     enabled: enable,
-    onSettled() {
-      router.push('/profile');
-    },
+    // onSettled() {
+    //   successToast('User data stored and NFT factory deployed');
+    //   router.push('/profile');
+    // },
   });
   const { successToast } = useToastCustom();
-  const { data, write } = useContractWrite(config);
+  const { data, writeAsync } = useContractWrite(config);
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,
   });
 
-  const submit = () => {
+  const submit = async () => {
     setEnable(!enable);
     console.log({ data });
-    write?.();
-    if (isSuccess) {
+    await writeAsync?.().then((transaction) => {
+      console.log({ transaction });
       successToast('User data stored and NFT factory deployed');
-    }
+      router.push('/profile');
+    });
+    // write?.();
+    // // if (isSuccess) {
+    // //   successToast('User data stored and NFT factory deployed');
+    // // }
   };
 
   return (

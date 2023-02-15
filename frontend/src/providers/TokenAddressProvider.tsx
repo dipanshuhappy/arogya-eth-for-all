@@ -8,7 +8,7 @@ import {
 
 type TokenAddressContextType = {
   tokenAddress: string;
-  setTokenAddress: Dispatch<(prevState: undefined) => undefined>;
+  setTokenAddress: Dispatch<(prevState: undefined | string) => undefined>;
 };
 
 export const TokenAddressContext = createContext<TokenAddressContextType>({
@@ -17,7 +17,7 @@ export const TokenAddressContext = createContext<TokenAddressContextType>({
 });
 
 const TokenAddressProvider = ({ children }: PropsWithChildren<{}>) => {
-  const [tokenAddress, setTokenAddress] = useState();
+  const [tokenAddress, setTokenAddress] = useState<string>();
   const value = useMemo<TokenAddressContextType>(
     () => ({ tokenAddress, setTokenAddress }),
     [tokenAddress]
