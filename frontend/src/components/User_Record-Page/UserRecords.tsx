@@ -1,4 +1,4 @@
-import { User } from "@/types/user";
+import { Doc_User } from "@/types/user";
 import { LinkIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -50,9 +50,15 @@ function UserRecords() {
       )
 
     const [overlay, setOverlay] = useState(<OverlayOne />);
-    // const [user, setUser] = useState<User>({} as User);
-    const [user, setUser] = useState<User>({} as User)
+    const [doc_user, setDoc_user] = useState<Doc_User>({} as Doc_User)
     
+    const [Name, SetName] = useState("Nithin Varma")
+    const [Age, SetAge] = useState("20");
+    const [Blood, SetBlood] = useState("A+");
+    const [Allergies, SetAllergies] = useState("NIL");
+    const [Medications, SetMedications] = useState("NIL");
+    const [About, SetAbout] = useState("Nithin Varma ");
+
     return (
 
         <>
@@ -124,7 +130,7 @@ function UserRecords() {
                     <Modal isCentered isOpen={isOpen} onClose={onClose}>
                         {overlay}
                         <ModalContent>
-                            <ModalHeader>Please Fill The Below Details</ModalHeader>
+                            <ModalHeader>Please Fill The Be Details</ModalHeader>
                             <ModalCloseButton />
                             
                             <ModalBody>
@@ -137,13 +143,13 @@ function UserRecords() {
                                     placeholder='title'
                                     _placeholder={{ color: 'gray.500' }}
                                     type='text'
-                                    // value={user.fullName}
-                                    // onChange={(e) => {
-                                    //     setUser({
-                                    //         ...user
-                                    //         fullName: e.target.value,
-                                    //     });
-                                    // }}
+                                    value={doc_user.title}
+                                    onChange={(e) => {
+                                        setDoc_user({
+                                            ...doc_user,
+                                            title: e.target.value,
+                                        });
+                                    }}
                                     />
                                 </FormControl>
                                 <FormControl id='hospital_name' isRequired>
@@ -152,6 +158,13 @@ function UserRecords() {
                                     type='text'
                                     placeholder="hospital name here"
                                     _placeholder={{ color: 'gray.500' }}
+                                    value = {doc_user.Issued_By_Hospital}
+                                    onChange={(e) => {
+                                        setDoc_user({
+                                            ...doc_user,
+                                        Issued_By_Hospital: e.target.value,
+                                        });
+                                    }}
                                     />
                                 </FormControl>
                                 <FormControl id='doctor_name' isRequired>
@@ -160,6 +173,13 @@ function UserRecords() {
                                     type='text'
                                     placeholder="doctor name here"
                                     _placeholder={{ color: 'gray.500' }}
+                                    value = {doc_user.Issued_By_Doctor}
+                                    onChange={(e) => {
+                                        setDoc_user({
+                                            ...doc_user,
+                                            Issued_By_Doctor: e.target.value,
+                                        });
+                                    }}
                                     />
                                 </FormControl>
                                 <FormControl id='tag' isRequired>
@@ -168,14 +188,24 @@ function UserRecords() {
                                     type='text'
                                     placeholder="tag here"
                                     _placeholder={{ color: 'gray.500' }}
+                                    value={doc_user.Tag}
+                                    onChange= {(e) => {
+                                        setDoc_user({
+                                            ...doc_user,
+                                            Tag:e.target.value
+                                        })
+
+                                    }}
                                     />
                                 </FormControl>
                                 <FormControl id='issued_date' isRequired>
                                     <FormLabel>Date of Issued</FormLabel>
                                     <Input
-                                    type='text'
+                                    type='Date'
                                     placeholder="Issued date here"
                                     _placeholder={{ color: 'gray.500' }}
+                                    // value={doc_user.Date_of_Issued}
+
                                     />
                                 </FormControl>
                                 <FormControl id='document_upload' isRequired>
