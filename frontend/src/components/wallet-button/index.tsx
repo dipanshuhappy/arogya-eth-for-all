@@ -1,22 +1,17 @@
 import { Button, chakra } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { SlWallet } from 'react-icons/sl';
-import { ParentStorageAbi } from 'src/abi';
-import { EMPTY_BYTES, PARENTCONTRACT } from 'src/data';
+import { EMPTY_BYTES } from 'src/data';
+import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
 import useToastCustom from 'src/hooks/useToastCustom';
-import { useAccount, useConnect, useContractRead } from 'wagmi';
+import { useAccount, useConnect } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 
 function WalletConnectMinimum() {
   const router = useRouter();
   const { successToast, errorToast } = useToastCustom();
   const { address, isConnected } = useAccount();
-  const { data: userData } = useContractRead({
-    address: PARENTCONTRACT,
-    abi: ParentStorageAbi,
-    functionName: 'accessMapping2',
-    args: [address],
-  });
+  const { tokenAddress } = useGetTokenAddress();
 
   const { connect, isSuccess } = useConnect({
     chainId: 3141,
@@ -25,8 +20,8 @@ function WalletConnectMinimum() {
     onSuccess() {
       successToast('Account Connected !');
 
-      console.log({ userData });
-      if (userData == EMPTY_BYTES || !userData) {
+      console.log({ tokenAddress });
+      if (tokenAddress == EMPTY_BYTES || !tokenAddress) {
         router.push('/signup');
       } else {
         router.push('/profile');
@@ -46,7 +41,7 @@ function WalletConnectMinimum() {
         if (!isConnected) {
           connect();
         } else {
-          if (userData == EMPTY_BYTES || !userData) {
+          if (tokenAddress == EMPTY_BYTES || !tokenAddress) {
             router.push('/signup');
           } else {
             router.push('/profile');
@@ -55,7 +50,11 @@ function WalletConnectMinimum() {
       }}
       color='brand.dark'
     >
-      {isConnected && userData !== EMPTY_BYTES ? 'Open Profile ' : 'Connect'}
+      {isConnected && tokenAddress !== EMPTY_BYTES
+        ? 'Open Profile '
+        : isConnected
+        ? 'Go to Sign Up'
+        : 'Connect'}
     </Button>
   );
 }

@@ -1,5 +1,5 @@
 import { BLOODGROUPS } from 'src/constants';
-type BLOODGROUP = (typeof BLOODGROUPS)[number];
+export type BLOODGROUP = (typeof BLOODGROUPS)[number];
 export interface User {
   address: string;
   fullName: string;

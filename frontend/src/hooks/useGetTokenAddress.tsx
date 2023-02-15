@@ -7,11 +7,11 @@ import { useAccount, useContractRead } from 'wagmi';
 // }
 export default function () {
   const { address } = useAccount();
-  const { data: tokenAddress } = useContractRead({
+  const { data: tokenAddress, refetch } = useContractRead({
     address: PARENTCONTRACT,
     abi: ParentStorageAbi,
     functionName: 'accessMapping2',
     args: [address],
   });
-  return { tokenAddress };
+  return { tokenAddress, refetch };
 }

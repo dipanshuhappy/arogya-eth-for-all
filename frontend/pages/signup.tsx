@@ -1,6 +1,6 @@
 import PageLayout from '@/components/page-layout';
 import { TokenAddressContext } from '@/providers/TokenAddressProvider';
-import { User } from '@/types/user';
+import { BLOODGROUP, User } from '@/types/user';
 import { safeIntToBigNumber, safeStringToBytes32 } from '@/utils/converter';
 import {
   Button,
@@ -14,7 +14,7 @@ import {
   Textarea,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { ParentStorageAbi } from 'src/abi';
 import { BLOODGROUPS } from 'src/constants';
 import { BASEURI, PARENTCONTRACT } from 'src/data';
@@ -32,6 +32,17 @@ function index() {
   const [enable, setEnable] = useState(false);
   const { setTokenAddress } = useContext(TokenAddressContext);
   const router = useRouter();
+  console.log({
+    sending: [
+      safeStringToBytes32(BASEURI) as `0x${string}`,
+      safeStringToBytes32(user?.fullName) as `0x${string}`,
+      safeIntToBigNumber(user?.age),
+      safeStringToBytes32(user?.bloodGroup) as `0x${string}`,
+      safeStringToBytes32(user?.allergies) as `0x${string}`,
+      safeStringToBytes32(user?.medication) as `0x${string}`,
+      safeStringToBytes32(user?.about) as `0x${string}`,
+    ],
+  });
   const { config } = usePrepareContractWrite({
     address: PARENTCONTRACT,
     abi: ParentStorageAbi,
@@ -52,19 +63,24 @@ function index() {
     // },
   });
   const { successToast } = useToastCustom();
+  const { refetch: refetchTokenAddress } = useGetTokenAddress();
   const { data, writeAsync } = useContractWrite(config);
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,
   });
+  useEffect(() => {
+    if (isSuccess) {
+      refetchTokenAddress().then((value) => {
+        console.log({ value });
+        router.push('/profile');
+      });
+    }
+  }, [isSuccess]);
 
   const submit = async () => {
     setEnable(!enable);
     console.log({ data });
-    await writeAsync?.().then((transaction) => {
-      console.log({ transaction });
-      successToast('User data stored and NFT factory deployed');
-      router.push('/profile');
-    });
+    await writeAsync?.();
     // write?.();
     // // if (isSuccess) {
     // //   successToast('User data stored and NFT factory deployed');
@@ -107,6 +123,7 @@ function index() {
                     ...user,
                     fullName: e.target.value,
                   });
+                  console.log({ user });
                 }}
               />
             </FormControl>
@@ -129,7 +146,17 @@ function index() {
             </FormControl>
             <FormControl id='blood group' isRequired>
               <FormLabel>Blood Group</FormLabel>
-              <SelectDefault required placeholder='Blood Group'>
+              <SelectDefault
+                required
+                placeholder='Blood Group'
+                value={user.bloodGroup}
+                onChange={(e) => {
+                  setUser({
+                    ...user,
+                    bloodGroup: e.target.value as BLOODGROUP,
+                  });
+                }}
+              >
                 {BLOODGROUPS.map((group) => (
                   <option value={group}>{group}</option>
                 ))}
