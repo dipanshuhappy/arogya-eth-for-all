@@ -31,7 +31,7 @@ const Header = () => {
       top='0'
       px={6}
       py={4}
-      zIndex='tooltip'
+      zIndex='sticky'
       justify='space-between'
       align='center'
       w='100%'

@@ -29,15 +29,23 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
-import { useContractRead } from 'wagmi';
+import useToastCustom from 'src/hooks/useToastCustom';
+import { useContractRead, useSigner } from 'wagmi';
 
 import { abi as TokenFactoryABI } from '../../abi/TokenFactory.json';
+const VALID_FILE_TYPES = [
+  'image/gif',
+  'image/jpeg',
+  'image/png',
+  'application/pdf',
+];
 function UserRecords() {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
+  const { data: signer } = useSigner();
+  console.log({ signer });
   const OverlayOne = () => (
     <ModalOverlay bg='none' backdropFilter='auto' backdropBlur='5px' />
   );
@@ -58,6 +66,27 @@ function UserRecords() {
       setUser(deserialiseUser(data));
     }
   }, [data]);
+  const { errorToast } = useToastCustom();
+  const onDoucmentSubmit = () => {};
+
+  function onFileHandle(event: ChangeEvent<HTMLInputElement>): void {
+    if (event.target.files.length > 1) {
+      onClose();
+      errorToast('Only Select One File');
+      return;
+    }
+    let selectedFile = event.target.files[0];
+    if (!VALID_FILE_TYPES.includes(selectedFile.type)) {
+      onClose();
+      errorToast('Only Images and PDF allowed');
+      return;
+    }
+    setDoc_user({
+      ...doc_user,
+      file: selectedFile,
+    });
+  }
+
   // const [Name, SetName] = useState("Nithin Varma")
   // const [Age, SetAge] = useState("20");
   // const [Blood, SetBlood] = useState("A+");
@@ -148,7 +177,7 @@ function UserRecords() {
               Upload New Document Here
             </Button>
           </Center>
-          <Modal isCentered isOpen={isOpen} onClose={onClose}>
+          <Modal size={'md'} isCentered isOpen={isOpen} onClose={onClose}>
             {overlay}
             <ModalContent>
               <ModalHeader>Please Fill The Be Details</ModalHeader>
@@ -227,9 +256,15 @@ function UserRecords() {
                     />
                   </FormControl>
                   <FormControl id='document_upload' isRequired>
-                    <FormLabel>Upload Document Here</FormLabel>
+                    <FormLabel>
+                      {doc_user.file
+                        ? `${doc_user.file.name}`
+                        : 'Upload Document Here'}
+                    </FormLabel>
                     <Input
                       type='file'
+                      onChange={onFileHandle}
+                      accept={VALID_FILE_TYPES.join(',')}
                       placeholder='upload recent document'
                       _placeholder={{ color: 'gray.500' }}
                     />
@@ -242,7 +277,7 @@ function UserRecords() {
               <ModalFooter>
                 <HStack spacing={'6'}>
                   <Button onClick={onClose}>Close</Button>
-                  <Button>Submit</Button>
+                  <Button onClick={onDoucmentSubmit}>Submit</Button>
                 </HStack>
               </ModalFooter>
             </ModalContent>

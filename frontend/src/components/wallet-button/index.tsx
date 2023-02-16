@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { SlWallet } from 'react-icons/sl';
 import { EMPTY_BYTES } from 'src/data';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
+import useMedusa from 'src/hooks/useMedusa';
 import useToastCustom from 'src/hooks/useToastCustom';
 import { useAccount, useConnect } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
@@ -31,19 +32,21 @@ function WalletConnectMinimum() {
       errorToast('Error Connecting Account');
     },
   });
+  const { signInToMedusa } = useMedusa();
 
   return (
     <Button
       leftIcon={<SlWallet />}
       backgroundColor={'brand.500'}
       paddingInline={'2.4rem'}
-      onClick={() => {
+      onClick={async () => {
         if (!isConnected) {
           connect();
         } else {
           if (tokenAddress == EMPTY_BYTES || !tokenAddress) {
             router.push('/signup');
           } else {
+            await signInToMedusa();
             router.push('/profile');
           }
         }

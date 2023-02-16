@@ -19,6 +19,7 @@ import { ParentStorageAbi } from 'src/abi';
 import { BLOODGROUPS } from 'src/constants';
 import { BASEURI, PARENTCONTRACT } from 'src/data';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
+import useMedusa from 'src/hooks/useMedusa';
 import useToastCustom from 'src/hooks/useToastCustom';
 import {
   useContractWrite,
@@ -68,11 +69,14 @@ function index() {
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,
   });
+  const { signInToMedusa } = useMedusa();
   useEffect(() => {
     if (isSuccess) {
       refetchTokenAddress().then((value) => {
-        console.log({ value });
-        router.push('/profile');
+        signInToMedusa().then(() => {
+          console.log({ value });
+          router.push('/profile');
+        });
       });
     }
   }, [isSuccess]);
