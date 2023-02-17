@@ -1,5 +1,4 @@
 import PageLayout from '@/components/page-layout';
-import UserInput from '@/components/user_input-page/User_input';
 import UserRecords from '@/components/User_Record-Page/UserRecords';
 
 import { useTranslation } from 'react-i18next';
@@ -13,7 +12,6 @@ const IndexPage = () => {
       title='user_input'
       description='Discover a starter kit which includes Next.js, Chakra-UI, Framer-Motion in Typescript. You have few components, Internationalization, SEO and more in this template ! Enjoy coding.'
     >
-      <UserInput/>
 
 
     </PageLayout>
