@@ -160,14 +160,6 @@ function UserRecords() {
       file: selectedFile,
     });
   }
-
-  // const [Name, SetName] = useState("Nithin Varma")
-  // const [Age, SetAge] = useState("20");
-  // const [Blood, SetBlood] = useState("A+");
-  // const [Allergies, SetAllergies] = useState("NIL");
-  // const [Medications, SetMedications] = useState("NIL");
-  // const [About, SetAbout] = useState("Nithin Varma ");
-
   return (
     <>
       <Box h='100vh' p={12} marginTop={'40'}>

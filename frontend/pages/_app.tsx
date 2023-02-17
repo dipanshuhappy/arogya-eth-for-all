@@ -2,6 +2,7 @@ import Layout from '@/components/layout';
 import ClientOnly from '@/components/layout/clientOnly';
 import '@/internationalization/i18n';
 import MedusaProvider from '@/providers/MedusaProvider';
+import SpinnerProvider from '@/providers/SpinnerProvider';
 import TokenAddressProvider from '@/providers/TokenAddressProvider';
 import theme from '@/theme';
 import { ChakraProvider } from '@chakra-ui/react';
@@ -57,9 +58,11 @@ const App = ({ Component, pageProps }: AppProps) => {
         <WagmiConfig client={client}>
           <TokenAddressProvider>
             <MedusaProvider>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
+              <SpinnerProvider>
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
+              </SpinnerProvider>
             </MedusaProvider>
           </TokenAddressProvider>
         </WagmiConfig>
