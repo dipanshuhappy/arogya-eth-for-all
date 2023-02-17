@@ -43,7 +43,6 @@ import {
 
 import { fileToBlob, getFileUrl, getMetaDataUrl } from '@/utils/converter';
 import { base64 } from 'ethers/lib/utils.js';
-import { TOKENCONTRACT } from 'src/data';
 import useMedusa from 'src/hooks/useMedusa';
 import { TokenFactoryAbi } from '../../abi/index';
 const VALID_FILE_TYPES = [
@@ -81,13 +80,12 @@ function UserRecords() {
   const { errorToast } = useToastCustom();
   // const [enable,setEnable] = useState(false);
   const [mintData, setMintData] = useState<MintParams>();
-  const args = [mintData?.dataDescription, mintData?.dataUrl, mintData?.cipher];
-  console.log({ args });
+
   const { config } = usePrepareContractWrite({
     address: tokenAddress as `0x${string}`,
     abi: TokenFactoryAbi,
     functionName: 'mint',
-    args: args,
+    args: [mintData?.dataDescription, mintData?.dataUrl, mintData?.cipher],
     enabled: !!mintData,
     signer: signer,
   });
@@ -98,44 +96,48 @@ function UserRecords() {
   });
   const onDoucmentSubmit = async () => {
     console.log('hiii');
+    if (tokenAddress) {
+      const { encryptedData, encryptedKey } = await medusa.encrypt(
+        new Uint8Array(await blob.arrayBuffer()),
+        tokenAddress as string
+      );
+      console.log({ encryptedKey });
+      const finalData = base64.encode(encryptedData);
+      console.log({ finalData });
+      const fileMetaData = {
+        name: `${doc_user.file.name}  ${doc_user.title} `,
+        description: doc_user.title,
+        image: new File([finalData], doc_user.file.name, {
+          type: 'text/plain',
+        }),
+        properties: {
+          issuerName: user.fullName,
+          date: new Date().toISOString(),
+          date_issued: doc_user.Date_of_Issued,
+          doctor_issued_by: doc_user.Issued_By_Doctor,
+          hospital_issued_by: doc_user.Issued_By_Hospital,
+          tags: doc_user.Tag,
+        },
+      };
+      // console.log({ ipfsMetaData });
 
-    const { encryptedData, encryptedKey } = await medusa.encrypt(
-      new Uint8Array(await blob.arrayBuffer()),
-      TOKENCONTRACT
-    );
-    const finalData = base64.encode(encryptedData);
-    console.log({ finalData });
-    const fileMetaData = {
-      name: `${doc_user.file.name}  ${doc_user.title} `,
-      description: doc_user.title,
-      image: new File([finalData], doc_user.file.name, { type: 'text/plain' }),
-      properties: {
-        issuerName: user.fullName,
-        date: new Date().toISOString(),
-        date_issued: doc_user.Date_of_Issued,
-        doctor_issued_by: doc_user.Issued_By_Doctor,
-        hospital_issued_by: doc_user.Issued_By_Hospital,
-        tags: doc_user.Tag,
-      },
-    };
-    // console.log({ ipfsMetaData });
+      const ipfsFileHash = await nftStorageClient.storeBlob(
+        new Blob([finalData], { type: 'text/plain' })
+      );
+      const fileUrl = getFileUrl(ipfsFileHash);
 
-    const ipfsFileHash = await nftStorageClient.storeBlob(
-      new Blob([finalData], { type: 'text/plain' })
-    );
-    const fileUrl = getFileUrl(ipfsFileHash);
-
-    console.log({ fileUrl });
-    const metaDataStorageInfo = await nftStorageClient.store(fileMetaData);
-    console.log({ metaDataStorageInfo });
-    const fileDescriptionUrl = getMetaDataUrl(metaDataStorageInfo.ipnft);
-    console.log({ fileDescriptionUrl });
-    setMintData({
-      dataUrl: fileUrl,
-      dataDescription: fileDescriptionUrl,
-      cipher: encryptedKey,
-    });
-    // await writeAsync();
+      console.log({ fileUrl });
+      const metaDataStorageInfo = await nftStorageClient.store(fileMetaData);
+      console.log({ metaDataStorageInfo });
+      const fileDescriptionUrl = getMetaDataUrl(metaDataStorageInfo.ipnft);
+      console.log({ fileDescriptionUrl });
+      setMintData({
+        dataUrl: fileUrl,
+        dataDescription: fileDescriptionUrl,
+        cipher: encryptedKey,
+      });
+    }
+    await writeAsync?.();
   };
 
   async function onFileHandle(
