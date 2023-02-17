@@ -1,4 +1,4 @@
-import { Doc_User, User } from '@/types/user';
+import { Doc_User, MintParams, User } from '@/types/user';
 import { deserialiseUser } from '@/utils/deserialise';
 
 import {
@@ -31,11 +31,21 @@ import {
 
 import { ChangeEvent, useEffect, useState } from 'react';
 
+import { NFTStorage } from 'nft.storage';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
 import useToastCustom from 'src/hooks/useToastCustom';
-import { useContractRead, useSigner } from 'wagmi';
+import {
+  useContractRead,
+  useContractWrite,
+  usePrepareContractWrite,
+  useSigner,
+} from 'wagmi';
 
-import { abi as TokenFactoryABI } from '../../abi/TokenFactory.json';
+import { fileToBlob, getFileUrl, getMetaDataUrl } from '@/utils/converter';
+import { base64 } from 'ethers/lib/utils.js';
+import { TOKENCONTRACT } from 'src/data';
+import useMedusa from 'src/hooks/useMedusa';
+import { TokenFactoryAbi } from '../../abi/index';
 const VALID_FILE_TYPES = [
   'image/gif',
   'image/jpeg',
@@ -54,10 +64,12 @@ function UserRecords() {
   const [doc_user, setDoc_user] = useState<Doc_User>({} as Doc_User);
   const [user, setUser] = useState<User>({} as User);
   const { tokenAddress } = useGetTokenAddress();
+  const [blob, setBlob] = useState<Blob>();
+  const { medusa } = useMedusa();
   console.log({ tokenAddress });
   const { data } = useContractRead({
     address: tokenAddress as `0x${string}`,
-    abi: TokenFactoryABI,
+    abi: TokenFactoryAbi,
     functionName: 'getOwnerDetails',
   });
   console.log({ data });
@@ -67,9 +79,68 @@ function UserRecords() {
     }
   }, [data]);
   const { errorToast } = useToastCustom();
-  const onDoucmentSubmit = () => {};
+  // const [enable,setEnable] = useState(false);
+  const [mintData, setMintData] = useState<MintParams>();
+  const args = [mintData?.dataDescription, mintData?.dataUrl, mintData?.cipher];
+  console.log({ args });
+  const { config } = usePrepareContractWrite({
+    address: tokenAddress as `0x${string}`,
+    abi: TokenFactoryAbi,
+    functionName: 'mint',
+    args: args,
+    enabled: !!mintData,
+    signer: signer,
+  });
+  const { data: mintContractData, writeAsync } = useContractWrite(config);
+  console.log({ mintContractData });
+  const nftStorageClient = new NFTStorage({
+    token: process.env.NEXT_PUBLIC_NFT_STORAGE_API,
+  });
+  const onDoucmentSubmit = async () => {
+    console.log('hiii');
 
-  function onFileHandle(event: ChangeEvent<HTMLInputElement>): void {
+    const { encryptedData, encryptedKey } = await medusa.encrypt(
+      new Uint8Array(await blob.arrayBuffer()),
+      TOKENCONTRACT
+    );
+    const finalData = base64.encode(encryptedData);
+    console.log({ finalData });
+    const fileMetaData = {
+      name: `${doc_user.file.name}  ${doc_user.title} `,
+      description: doc_user.title,
+      image: new File([finalData], doc_user.file.name, { type: 'text/plain' }),
+      properties: {
+        issuerName: user.fullName,
+        date: new Date().toISOString(),
+        date_issued: doc_user.Date_of_Issued,
+        doctor_issued_by: doc_user.Issued_By_Doctor,
+        hospital_issued_by: doc_user.Issued_By_Hospital,
+        tags: doc_user.Tag,
+      },
+    };
+    // console.log({ ipfsMetaData });
+
+    const ipfsFileHash = await nftStorageClient.storeBlob(
+      new Blob([finalData], { type: 'text/plain' })
+    );
+    const fileUrl = getFileUrl(ipfsFileHash);
+
+    console.log({ fileUrl });
+    const metaDataStorageInfo = await nftStorageClient.store(fileMetaData);
+    console.log({ metaDataStorageInfo });
+    const fileDescriptionUrl = getMetaDataUrl(metaDataStorageInfo.ipnft);
+    console.log({ fileDescriptionUrl });
+    setMintData({
+      dataUrl: fileUrl,
+      dataDescription: fileDescriptionUrl,
+      cipher: encryptedKey,
+    });
+    // await writeAsync();
+  };
+
+  async function onFileHandle(
+    event: ChangeEvent<HTMLInputElement>
+  ): Promise<void> {
     if (event.target.files.length > 1) {
       onClose();
       errorToast('Only Select One File');
@@ -81,6 +152,7 @@ function UserRecords() {
       errorToast('Only Images and PDF allowed');
       return;
     }
+    setBlob(await fileToBlob(selectedFile));
     setDoc_user({
       ...doc_user,
       file: selectedFile,
