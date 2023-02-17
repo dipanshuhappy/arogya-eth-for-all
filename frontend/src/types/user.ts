@@ -16,7 +16,11 @@ export interface Doc_User {
   Issued_By_Doctor: string;
   Tag: string;
   Date_of_Issued: Date;
-  file: File | null;
+  file: File;
+  fileUrl: string;
+  cipher_id: number;
+  id: number;
+  name: string;
 }
 export interface MintParams {
   dataDescription: string;

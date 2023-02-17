@@ -21,7 +21,7 @@ export default function () {
     },
   });
   useEffect(() => {
-    setTokenAddress(tokenAddressWagmi);
+    setTokenAddress(tokenAddressWagmi as string);
   }, [tokenAddressWagmi]);
 
   return { tokenAddress, refetch };

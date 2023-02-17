@@ -23,77 +23,200 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Spinner,
   Stack,
   Text,
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
 
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useContext, useEffect, useState } from 'react';
 
 import { NFTStorage } from 'nft.storage';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
 import useToastCustom from 'src/hooks/useToastCustom';
 import {
+  useContract,
   useContractRead,
   useContractWrite,
   usePrepareContractWrite,
+  useProvider,
   useSigner,
+  useWaitForTransaction,
 } from 'wagmi';
 
+import { SpinnerContext } from '@/providers/SpinnerProvider';
 import { fileToBlob, getFileUrl, getMetaDataUrl } from '@/utils/converter';
 import { base64 } from 'ethers/lib/utils.js';
+import { CarReader } from 'nft.storage/dist/src/lib/interface';
+import { EMPTY_BYTES } from 'src/data';
+import useDocument from 'src/hooks/useDocument';
 import useMedusa from 'src/hooks/useMedusa';
 import { TokenFactoryAbi } from '../../abi/index';
+interface DocumentCar {
+  fileCar: CarReader;
+  metadataCar: CarReader;
+}
 const VALID_FILE_TYPES = [
   'image/gif',
   'image/jpeg',
   'image/png',
   'application/pdf',
 ];
+function UserProfile({ user }: { user: User }) {
+  return (
+    <>
+      <CardHeader>
+        <Heading textAlign={'start'}>{user.fullName}</Heading>
+      </CardHeader>
+      <CardBody>
+        <VStack spacing={8} align='start' w={{ base: '100%', md: '50%' }}>
+          <Text as='b'>Age: {user.age}</Text>
+          <Text as='b'>Blood_Group: {user.bloodGroup}</Text>
+          <Text as='b'>Allergies: {user.allergies}</Text>
+          <Text as='b'>Medications: {user.medication}</Text>
+          <Text as='b'>About: {user.about}</Text>
+        </VStack>
+      </CardBody>
+      <CardFooter>
+        {/* <Button colorScheme="blue">Sign up</Button> */}
+      </CardFooter>
+    </>
+  );
+}
+function Document({ document }: { document: Doc_User }) {
+  return (
+    <>
+      <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
+        <CardHeader>
+          <Heading textAlign={'start'}>{document?.title}</Heading>
+        </CardHeader>
+        <CardBody>
+          <VStack align={'start'} spacing={8}>
+            <Text as='b'>Issued By: {document?.Issued_By_Doctor} </Text>
+            <Text as='b'>
+              Hospital Reference: {document?.Issued_By_Hospital}
+            </Text>
+            <Text as='b'>Tags: {document?.Tag}</Text>
+            <Text as='b'>
+              Date of Issue: {document?.Date_of_Issued.toISOString()}
+            </Text>
+          </VStack>
+        </CardBody>
+        <Center>
+          <CardFooter>
+            <Button colorScheme='teal' variant='solid'>
+              Open File
+            </Button>
+          </CardFooter>
+        </Center>
+      </Card>
+    </>
+  );
+}
+const emptyDoc = {
+  Date_of_Issued: new Date(),
+  Tag: '',
+  title: 'title',
+  Issued_By_Doctor: 'kdsf',
+  Issued_By_Hospital: '',
+} as Doc_User;
 function UserRecords() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const onOpenModal = async () => {
+    if (!medusa) {
+      await signInToMedusa();
+    }
+    onOpen();
+  };
   const { data: signer } = useSigner();
   console.log({ signer });
   const OverlayOne = () => (
     <ModalOverlay bg='none' backdropFilter='auto' backdropBlur='5px' />
   );
-
   const [overlay, setOverlay] = useState(<OverlayOne />);
   const [doc_user, setDoc_user] = useState<Doc_User>({} as Doc_User);
   const [user, setUser] = useState<User>({} as User);
   const { tokenAddress } = useGetTokenAddress();
   const [blob, setBlob] = useState<Blob>();
-  const { medusa } = useMedusa();
+  const { medusa, signInToMedusa } = useMedusa();
+  const { spinner, setSpinnerText, setSpinner } = useContext(SpinnerContext);
   console.log({ tokenAddress });
   const { data } = useContractRead({
     address: tokenAddress as `0x${string}`,
     abi: TokenFactoryAbi,
     functionName: 'getOwnerDetails',
   });
+
   console.log({ data });
   useEffect(() => {
     if (data) {
       setUser(deserialiseUser(data));
     }
   }, [data]);
-  const { errorToast } = useToastCustom();
-  // const [enable,setEnable] = useState(false);
+  const { errorToast, successToast } = useToastCustom();
   const [mintData, setMintData] = useState<MintParams>();
-
-  const { config } = usePrepareContractWrite({
+  const [documentCar, setDocumentCar] = useState<DocumentCar>();
+  const provider = useProvider();
+  const { config, refetch } = usePrepareContractWrite({
     address: tokenAddress as `0x${string}`,
     abi: TokenFactoryAbi,
     functionName: 'mint',
     args: [mintData?.dataDescription, mintData?.dataUrl, mintData?.cipher],
     enabled: !!mintData,
     signer: signer,
+    onSuccess() {},
   });
-  const { data: mintContractData, writeAsync } = useContractWrite(config);
+
+  const {
+    data: mintContractData,
+    writeAsync,
+    reset,
+    write,
+  } = useContractWrite({ ...config, request: config.request });
+  const mintContract = useContract({
+    address: tokenAddress,
+    abi: TokenFactoryAbi,
+    signerOrProvider: signer,
+  });
+  console.log('mint function', { mintContract });
   console.log({ mintContractData });
   const nftStorageClient = new NFTStorage({
     token: process.env.NEXT_PUBLIC_NFT_STORAGE_API,
   });
+  const { isLoading, isSuccess } = useWaitForTransaction({
+    hash: mintContractData?.hash,
+  });
+  const storeCar = async () => {
+    await nftStorageClient.storeCar(documentCar.fileCar);
+    await nftStorageClient.storeCar(documentCar.metadataCar);
+  };
+
+  useEffect(() => {
+    if (isSuccess) {
+      setSpinnerText('Uploading image to ipfs using Filecoin');
+      // storeCar().then(() => {
+
+      // });
+      setSpinner(false);
+      successToast('Document Uploaded !');
+    }
+  }, [isSuccess]);
+
+  useEffect(() => {
+    if (isLoading) {
+      if (!spinner) {
+        setSpinner(true);
+      }
+      setSpinnerText(
+        'Waiting for Transaction Confirmation,Chill  it takes some time '
+      );
+    }
+    if (!isLoading && isSuccess) {
+      setSpinner(false);
+    }
+  }, [isLoading]);
+
   const onDoucmentSubmit = async () => {
     console.log('hiii');
     if (tokenAddress) {
@@ -103,6 +226,7 @@ function UserRecords() {
       );
       console.log({ encryptedKey });
       const finalData = base64.encode(encryptedData);
+
       console.log({ finalData });
       const fileMetaData = {
         name: `${doc_user.file.name}  ${doc_user.title} `,
@@ -121,25 +245,32 @@ function UserRecords() {
       };
       // console.log({ ipfsMetaData });
 
-      const ipfsFileHash = await nftStorageClient.storeBlob(
+      const cid = await nftStorageClient.storeBlob(
         new Blob([finalData], { type: 'text/plain' })
       );
-      const fileUrl = getFileUrl(ipfsFileHash);
+      const fileUrl = getFileUrl(cid.toString());
 
       console.log({ fileUrl });
       const metaDataStorageInfo = await nftStorageClient.store(fileMetaData);
+      // setDocumentCar({
+      //   metadataCar: metaDataStorageCar,
+      //   fileCar: blobCar,
+      // });
       console.log({ metaDataStorageInfo });
       const fileDescriptionUrl = getMetaDataUrl(metaDataStorageInfo.ipnft);
       console.log({ fileDescriptionUrl });
+
       setMintData({
         dataUrl: fileUrl,
         dataDescription: fileDescriptionUrl,
         cipher: encryptedKey,
       });
+      write?.();
+      if (!write) {
+        alert("If it does'nt work ,click submit button again");
+      }
     }
-    await writeAsync?.();
   };
-
   async function onFileHandle(
     event: ChangeEvent<HTMLInputElement>
   ): Promise<void> {
@@ -160,6 +291,20 @@ function UserRecords() {
       file: selectedFile,
     });
   }
+  const { tokenIds, tokenData, docs } = useDocument();
+  console.log({ tokenIds });
+  console.log({ tokenData });
+
+  console.log({ docs });
+  // if (!writeAsync)
+  //   return (
+  //     <>
+  //       <Spinner />
+  //     </>
+  //   );
+  if (!tokenAddress || tokenAddress == EMPTY_BYTES || tokenAddress == '') {
+    return <Spinner size='xl' color='red' />;
+  }
   return (
     <>
       <Box h='100vh' p={12} marginTop={'40'}>
@@ -179,53 +324,14 @@ function UserRecords() {
             direction={{ base: 'column', md: 'row' }}
           >
             <VStack>
-              <CardHeader>
-                <Heading textAlign={'start'}>{user.fullName}</Heading>
-              </CardHeader>
-              <CardBody>
-                <VStack
-                  spacing={8}
-                  align='start'
-                  w={{ base: '100%', md: '50%' }}
-                  // py={{ base: 20, md: 0 }}
-                >
-                  <Text as='b'>Age: {user.age}</Text>
-                  <Text as='b'>Blood_Group: {user.bloodGroup}</Text>
-                  <Text as='b'>Allergies: {user.allergies}</Text>
-                  <Text as='b'>Medications: {user.medication}</Text>
-                  <Text as='b'>About: {user.about}</Text>
-                </VStack>
-              </CardBody>
-              <CardFooter>
-                {/* <Button colorScheme="blue">Sign up</Button> */}
-              </CardFooter>
+              <UserProfile user={user} />
             </VStack>
-            <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
-              <CardHeader>
-                <Text as='h1' textAlign={'start'}>
-                  Latest Document
-                </Text>
-                <br />
-                <Heading as='h1' textAlign={'start'}>
-                  "fksldjf"
-                </Heading>
-              </CardHeader>
-              <CardBody>
-                <VStack align={'start'} spacing={8}>
-                  <Text as='b'>Issued By: </Text>
-                  <Text as='b'>Hospital Reference: </Text>
-                  <Text as='b'>Tags: </Text>
-                  <Text as='b'>Date of Issue: </Text>
-                </VStack>
-              </CardBody>
-              <Center>
-                <CardFooter>
-                  <Button colorScheme='teal' variant='solid'>
-                    Open File
-                  </Button>
-                </CardFooter>
-              </Center>
-            </Card>
+            <VStack>
+              <Text as='h1' textAlign={'start'}>
+                Latest Document
+              </Text>
+              <Document document={emptyDoc} />
+            </VStack>
           </Stack>
           <Center>
             <Button
@@ -237,7 +343,7 @@ function UserRecords() {
               colorScheme={'whatsapp'}
               onClick={() => {
                 setOverlay(<OverlayOne />);
-                onOpen();
+                onOpenModal();
               }}
             >
               Upload New Document Here
@@ -343,7 +449,9 @@ function UserRecords() {
               <ModalFooter>
                 <HStack spacing={'6'}>
                   <Button onClick={onClose}>Close</Button>
-                  <Button onClick={onDoucmentSubmit}>Submit</Button>
+                  <Button onClick={onDoucmentSubmit} isLoading={isLoading}>
+                    Submit
+                  </Button>
                 </HStack>
               </ModalFooter>
             </ModalContent>
@@ -363,26 +471,7 @@ function UserRecords() {
             direction={{ base: 'column', md: 'row' }}
           >
             <HStack spacing={1} direction={{ base: 'column', md: 'row' }}>
-              <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
-                <CardHeader>
-                  <Heading textAlign={'start'}>{user.fullName}</Heading>
-                </CardHeader>
-                <CardBody>
-                  <VStack align={'start'} spacing={8}>
-                    <Text as='b'>Issued By: </Text>
-                    <Text as='b'>Hospital Reference: </Text>
-                    <Text as='b'>Tags: </Text>
-                    <Text as='b'>Date of Issue: </Text>
-                  </VStack>
-                </CardBody>
-                <Center>
-                  <CardFooter>
-                    <Button colorScheme='teal' variant='solid'>
-                      Open File
-                    </Button>
-                  </CardFooter>
-                </Center>
-              </Card>
+              <Document document={emptyDoc} />
               <Image
                 src={'./assets/images/chain-link-icon.svg'}
                 h={'120px'}
@@ -390,26 +479,7 @@ function UserRecords() {
               />
             </HStack>
 
-            <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
-              <CardHeader>
-                <Heading textAlign={'start'}>{user.fullName}</Heading>
-              </CardHeader>
-              <CardBody>
-                <VStack align={'start'} spacing={8}>
-                  <Text as='b'>Issued By: </Text>
-                  <Text as='b'>Hospital Reference: </Text>
-                  <Text as='b'>Tags: </Text>
-                  <Text as='b'>Date of Issue: </Text>
-                </VStack>
-              </CardBody>
-              <Center>
-                <CardFooter>
-                  <Button colorScheme='teal' variant='solid'>
-                    Open File
-                  </Button>
-                </CardFooter>
-              </Center>
-            </Card>
+            <Document document={docs[0]} />
           </Stack>
         </Card>
       </Box>

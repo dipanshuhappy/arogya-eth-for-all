@@ -2,13 +2,14 @@ import {
   createContext,
   Dispatch,
   PropsWithChildren,
+  SetStateAction,
   useMemo,
   useState,
 } from 'react';
 
 type TokenAddressContextType = {
   tokenAddress: string;
-  setTokenAddress: Dispatch<(prevState: undefined | string) => undefined>;
+  setTokenAddress: Dispatch<SetStateAction<string>>;
 };
 
 export const TokenAddressContext = createContext<TokenAddressContextType>({

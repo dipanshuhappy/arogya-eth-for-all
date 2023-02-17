@@ -1,5 +1,4 @@
-import FeaturesPage from '@/components/index-page/features_page';
-import StartingPage from '@/components/index-page/starting_page';
+import ClientOnly from '@/components/layout/clientOnly';
 import PageLayout from '@/components/page-layout';
 import UserRecords from '@/components/User_Record-Page/UserRecords';
 
@@ -10,16 +9,15 @@ const IndexPage = () => {
 
   return (
     <>
-    <PageLayout
-      title='user_record'
-      description='Discover a starter kit which includes Next.js, Chakra-UI, Framer-Motion in Typescript. You have few components, Internationalization, SEO and more in this template ! Enjoy coding.'
-    >
-      <UserRecords />
-
-    </PageLayout>
-    </> 
-    
- 
+      <PageLayout
+        title='user_record'
+        description='Discover a starter kit which includes Next.js, Chakra-UI, Framer-Motion in Typescript. You have few components, Internationalization, SEO and more in this template ! Enjoy coding.'
+      >
+        <ClientOnly>
+          <UserRecords />
+        </ClientOnly>
+      </PageLayout>
+    </>
   );
 };
 

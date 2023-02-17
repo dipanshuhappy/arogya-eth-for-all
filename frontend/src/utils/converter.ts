@@ -11,3 +11,19 @@ export const getFileUrl = (cid: string) =>
   `https://${cid}.ipfs.nftstorage.link/`;
 export const getMetaDataUrl = (cid: string) =>
   `https://${cid}.ipfs.nftstorage.link/metadata.json`;
+export async function getMaxPriorityFeePerGas(provider) {
+  // Blame FEVM
+  let maxPriorityFee = null;
+  let attempt = 0;
+  while (maxPriorityFee == null) {
+    try {
+      return await provider.getFeeData().maxPriorityFeePerGas;
+    } catch (e) {
+      attempt++;
+      if (attempt > 100) {
+        break;
+      }
+    }
+  }
+  return 0;
+}
