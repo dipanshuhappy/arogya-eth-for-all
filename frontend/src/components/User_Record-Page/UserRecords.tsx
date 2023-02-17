@@ -150,7 +150,7 @@ function UserRecords() {
           </Center>
           <Modal isCentered isOpen={isOpen} onClose={onClose}>
             {overlay}
-            <ModalContent>
+            <ModalContent marginTop={'64'} >
               <ModalHeader>Please Fill The Be Details</ModalHeader>
               <ModalCloseButton />
 
