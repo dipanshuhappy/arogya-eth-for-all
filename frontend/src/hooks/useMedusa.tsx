@@ -1,11 +1,11 @@
 import { MedusaContext } from '@/providers/MedusaProvider';
 import { Medusa } from '@medusa-network/medusa-sdk';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { MEDUSAORACLEADDRESS } from 'src/data';
 import { useAccount, useSigner } from 'wagmi';
 
 export default function () {
-  const { medusa, updateMedusa } = useContext(MedusaContext);
+  const { medusa, updateMedusa, decryptions } = useContext(MedusaContext);
   const { data: signer } = useSigner({ chainId: 3141 });
   const { address } = useAccount();
   const signInToMedusa = async () => {
@@ -19,9 +19,15 @@ export default function () {
   const signOutMedusa = async () => {
     medusa.setKeypair(null);
   };
+  useEffect(() => {
+    if (!medusa) {
+      signInToMedusa();
+    }
+  }, []);
   return {
     medusa,
     signInToMedusa,
     signOutMedusa,
+    decryptions,
   };
 }

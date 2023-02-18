@@ -1,3 +1,4 @@
+import EventFetcher from '@/components/event-listener/index';
 import ClientOnly from '@/components/layout/clientOnly';
 import PageLayout from '@/components/page-layout';
 import UserRecords from '@/components/User_Record-Page/UserRecords';
@@ -14,6 +15,7 @@ const IndexPage = () => {
         description='Discover a starter kit which includes Next.js, Chakra-UI, Framer-Motion in Typescript. You have few components, Internationalization, SEO and more in this template ! Enjoy coding.'
       >
         <ClientOnly>
+          <EventFetcher />
           <UserRecords />
         </ClientOnly>
       </PageLayout>

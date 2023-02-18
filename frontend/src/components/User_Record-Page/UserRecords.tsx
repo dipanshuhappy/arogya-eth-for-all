@@ -45,8 +45,15 @@ import {
   useWaitForTransaction,
 } from 'wagmi';
 
+import { MedusaContext } from '@/providers/MedusaProvider';
 import { SpinnerContext } from '@/providers/SpinnerProvider';
-import { fileToBlob, getFileUrl, getMetaDataUrl } from '@/utils/converter';
+import {
+  fileToBlob,
+  getFileUrl,
+  getMetaDataUrl,
+  safeIntToBigNumber,
+} from '@/utils/converter';
+import { BigNumber } from 'ethers';
 import { base64 } from 'ethers/lib/utils.js';
 import { CarReader } from 'nft.storage/dist/src/lib/interface';
 import { EMPTY_BYTES } from 'src/data';
@@ -85,6 +92,56 @@ function UserProfile({ user }: { user: User }) {
   );
 }
 function Document({ document }: { document: Doc_User }) {
+  const [enableFile, setEnableFile] = useState(false);
+  const { medusa, decryptions } = useMedusa();
+  const [blob, setBlob] = useState<Blob>();
+  const [cipherText, setCipherText] = useState('');
+
+  const [fileRequestId, setFileRequestId] = useState<number>();
+  const { tokenAddress } = useGetTokenAddress();
+  const { config: getRequestIdConfig } = usePrepareContractWrite({
+    address: tokenAddress as `0x${string}`,
+    abi: TokenFactoryAbi,
+    functionName: 'buyTokenId',
+    args: [safeIntToBigNumber(document.id), medusa.keypair.pubkey.toEvm()],
+    overrides: { value: BigNumber.from(0) },
+    enabled: !enableFile,
+    onSuccess(data) {},
+  });
+  const [downloadUrl, setDownloadUrl] = useState('');
+  console.log({ downloadUrl });
+  const { data, writeAsync } = useContractWrite(getRequestIdConfig);
+  const { isLoading, isSuccess } = useWaitForTransaction({
+    hash: data?.hash,
+  });
+
+  useEffect(() => {
+    if (isSuccess) {
+      const encryptedBytes = base64.decode(cipherText);
+      const decryptContent = async () => {
+        if (decryptions.length != 0) {
+          const decryptedBytes = await medusa.decrypt(
+            decryptions[decryptions.length - 1].ciphertext,
+            encryptedBytes
+          );
+          const msg = new TextDecoder().decode(decryptedBytes);
+          if (msg.startsWith('data:image')) {
+            setDownloadUrl(window.URL.createObjectURL(new Blob([msg])));
+          }
+        }
+      };
+      decryptContent();
+    }
+  }, [isSuccess]);
+  const getFile = async () => {
+    await medusa.signForKeypair();
+    setEnableFile(true);
+    const respone = await fetch(document.fileUrl);
+    const newText = await respone.text();
+    setCipherText(newText);
+    await writeAsync?.();
+    console.log({ fileRequestId });
+  };
   return (
     <>
       <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
@@ -105,7 +162,12 @@ function Document({ document }: { document: Doc_User }) {
         </CardBody>
         <Center>
           <CardFooter>
-            <Button colorScheme='teal' variant='solid'>
+            <Button
+              colorScheme='teal'
+              variant='solid'
+              onClick={getFile}
+              isLoading={isLoading}
+            >
               Open File
             </Button>
           </CardFooter>
@@ -141,6 +203,7 @@ function UserRecords() {
   const [blob, setBlob] = useState<Blob>();
   const { medusa, signInToMedusa } = useMedusa();
   const { spinner, setSpinnerText, setSpinner } = useContext(SpinnerContext);
+  const { addDecryption, decryptions } = useContext(MedusaContext);
   console.log({ tokenAddress });
   const { data } = useContractRead({
     address: tokenAddress as `0x${string}`,
@@ -294,7 +357,6 @@ function UserRecords() {
   const { tokenIds, tokenData, docs } = useDocument();
   console.log({ tokenIds });
   console.log({ tokenData });
-
   console.log({ docs });
   // if (!writeAsync)
   //   return (
@@ -330,7 +392,7 @@ function UserRecords() {
               <Text as='h1' textAlign={'start'}>
                 Latest Document
               </Text>
-              <Document document={emptyDoc} />
+              {/* <Document document={emptyDoc} /> */}
             </VStack>
           </Stack>
           <Center>
@@ -471,15 +533,14 @@ function UserRecords() {
             direction={{ base: 'column', md: 'row' }}
           >
             <HStack spacing={1} direction={{ base: 'column', md: 'row' }}>
-              <Document document={emptyDoc} />
+              {/* <Document document={emptyDoc} /> */}
               <Image
                 src={'./assets/images/chain-link-icon.svg'}
                 h={'120px'}
                 // w={'full'}
               />
             </HStack>
-
-            <Document document={docs[0]} />
+            {medusa ? <Document document={docs[0]} /> : null}
           </Stack>
         </Card>
       </Box>

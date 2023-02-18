@@ -21,30 +21,60 @@ export default function () {
     watch: true,
 
     async onSuccess(data) {
-      console.log({ data });
-      const tokenIdsNum = parseInt((data as BigNumber).toString());
+      console.log({ tokenIds });
+      const tokenIdsNum = parseInt((tokenIds as BigNumber).toString());
       const tokenInfos = [];
       for (let tokenId = 0; tokenId < tokenIdsNum; tokenId++) {
-        const tokenInfo = await readContract({
+        const value = await readContract({
           address: tokenAddress as `0x${string}`,
           abi: TokenFactoryAbi,
           functionName: 'id_TokenDetailMapping',
           args: [safeIntToBigNumber(tokenId)],
         });
-        tokenInfos.push(tokenInfo);
+        tokenInfos.push(value);
       }
-      setTokenData(tokenInfos);
+      if (tokenInfos.length != tokenData.length) {
+        setTokenData(tokenInfos);
+      }
     },
   });
+  // useEffect(() => {
+  //   if (tokenIds) {
+  //     console.log({ tokenIds });
+  //     const tokenIdsNum = parseInt((tokenIds as BigNumber).toString());
+  //     const tokenInfos = [];
+  //     for (let tokenId = 0; tokenId < tokenIdsNum; tokenId++) {
+  //       readContract({
+  //         address: tokenAddress as `0x${string}`,
+  //         abi: TokenFactoryAbi,
+  //         functionName: 'id_TokenDetailMapping',
+  //         args: [safeIntToBigNumber(tokenId)],
+  //       }).then((value) => tokenInfos.push(value));
+  //     }
+  //     setTokenData(tokenInfos);
+  //   }
+  // }, [tokenIds]);
   useEffect(() => {
-    let newDocs = [];
-    tokenData.map((data) => {
-      deserialiseDoc(data).then((doc) => {
-        newDocs.push(doc);
+    if (tokenData.length != 0) {
+      let newDocs = [];
+      tokenData.map((data) => {
+        deserialiseDoc(data).then((doc) => {
+          newDocs.push(doc);
+        });
       });
-    });
-    setDocs(newDocs);
+
+      setDocs(newDocs);
+    }
   }, [tokenData]);
+  // const docs = useMemo(() => {
+  //   let newDocs = [];
+  //   tokenData.map((data) => {
+  //     deserialiseDoc(data).then((doc) => {
+  //       newDocs.push(doc);
+  //     });
+  //   });
+  //   return newDocs;
+  // }, [tokenData, tokenIds]);
 
   return { tokenIds, tokenData, docs };
 }
