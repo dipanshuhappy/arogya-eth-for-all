@@ -78,6 +78,19 @@ contract TokenFactory is ERC721Enumerable, Ownable {
         return false;
     }
 
+    function removeFromArray(
+        address[] memory myArray,
+        address addressToRemove
+    ) public pure returns (address[] memory) {
+        for (uint i = 0; i < myArray.length; i++) {
+            if (myArray[i] == addressToRemove) {
+                myArray[i] = address(0);
+                break;
+            }
+        }
+        return myArray;
+    }
+
     constructor(
         bytes32 baseURI,
         bytes32 ownerName,
@@ -198,6 +211,29 @@ contract TokenFactory is ERC721Enumerable, Ownable {
 
     function getOwnerDetails() public view returns (ownerDetailsType memory) {
         return ownerDetails;
+    }
+
+    function getAllowedAddress(uint256 tokenId) public view returns (address[] memory) {
+        return id_TokenAccessDetailMapping[tokenId]._allowedAddresses;
+    }
+
+    function setPrice(uint256 _tokenId, uint256 new_price) public onlyOwner {
+        id_TokenAccessDetailMapping[_tokenId]._price = new_price;
+    }
+
+    function setIsPublic(uint256 _tokenId, bool _is_public) public onlyOwner {
+        id_TokenAccessDetailMapping[_tokenId]._is_public = _is_public;
+    }
+
+    function addAllowedAddress(uint256 _tokenId, address _address) public onlyOwner {
+        id_TokenAccessDetailMapping[_tokenId]._allowedAddresses.push(_address);
+    }
+
+    function removeAllowedAddress(uint256 _tokenId, address _address) public onlyOwner {
+        id_TokenAccessDetailMapping[_tokenId]._allowedAddresses = removeFromArray(
+            id_TokenAccessDetailMapping[_tokenId]._allowedAddresses,
+            _address
+        );
     }
 
     /**

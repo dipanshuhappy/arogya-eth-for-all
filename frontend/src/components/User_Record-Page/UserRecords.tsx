@@ -165,6 +165,7 @@ function Document({ document }: { document: Doc_User }) {
   };
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
+
   const [tokenAccessDetail, setTokenAccessDetail] =
     useState<TokenAccessDetail>();
   const onShare = async () => {
@@ -176,8 +177,23 @@ function Document({ document }: { document: Doc_User }) {
       functionName: 'id_TokenAccessDetailMapping',
       args: [safeIntToBigNumber(document.id)],
     });
+
     console.log('Token access detail data', { data });
-    setTokenAccessDetail(deserialiseTokenAccessDetail(data));
+    const tokenDetailWithoutAddresses = deserialiseTokenAccessDetail(data);
+
+    const tokenAddressesData = await readContract({
+      address: tokenAddress as `0x${string}`,
+      abi: TokenFactoryAbi,
+      functionName: 'getAllowedAddress',
+      args: [safeIntToBigNumber(document.id)],
+    });
+    console.log({ tokenAddressesData });
+    setTokenAccessDetail({
+      is_public: tokenDetailWithoutAddresses.is_public,
+      price: tokenDetailWithoutAddresses.price,
+      allowedAddresses: tokenAddressesData as string[],
+    });
+
     setLoading(false);
   };
   return (
