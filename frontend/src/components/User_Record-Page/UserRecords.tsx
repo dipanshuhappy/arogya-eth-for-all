@@ -30,6 +30,7 @@ import {
   Stack,
   Tag,
   Text,
+  useClipboard,
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
@@ -38,9 +39,33 @@ import lighthouse from '@lighthouse-web3/sdk';
 
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 
+import { SpinnerContext } from '@/providers/SpinnerProvider';
+import {
+  fileToBlob,
+  getCidFromFileUrl,
+  getFileUrl,
+  getMetaDataUrl,
+  getViewUrlFromCid,
+  safeIntToBigNumber,
+} from '@/utils/converter';
+import {
+  encryptionSignatureForLighthouse,
+  getAccessControlConditions,
+} from '@/utils/fetcher';
+import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
+import { BigNumber } from 'ethers';
+import { useRouter } from 'next/router';
 import { NFTStorage } from 'nft.storage';
+import { CarReader } from 'nft.storage/dist/src/lib/interface';
+import { BsPlusLg } from 'react-icons/bs';
+import { HiShare } from 'react-icons/hi';
+import { IoCopySharp } from 'react-icons/io5';
+import { EMPTY_BYTES } from 'src/data';
+import useDocument from 'src/hooks/useDocument';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
+import useLightHouse from 'src/hooks/useLightHouse';
 import useToastCustom from 'src/hooks/useToastCustom';
+import useWriteIsPublic from 'src/hooks/useWriteIsPublic';
 import {
   useContractRead,
   useContractWrite,
@@ -48,29 +73,6 @@ import {
   useSigner,
   useWaitForTransaction,
 } from 'wagmi';
-
-import { SpinnerContext } from '@/providers/SpinnerProvider';
-import {
-  fileToBlob,
-  getCidFromFileUrl,
-  getFileUrl,
-  getMetaDataUrl,
-  safeIntToBigNumber,
-} from '@/utils/converter';
-import {
-  encryptionSignatureForLighthouse,
-  getAccessControlConditions,
-} from '@/utils/fetcher';
-import { DeleteIcon } from '@chakra-ui/icons';
-import { BigNumber } from 'ethers';
-import { useRouter } from 'next/router';
-import { CarReader } from 'nft.storage/dist/src/lib/interface';
-import { BsPlusLg } from 'react-icons/bs';
-import { HiShare } from 'react-icons/hi';
-import { EMPTY_BYTES } from 'src/data';
-import useDocument from 'src/hooks/useDocument';
-import useLightHouse from 'src/hooks/useLightHouse';
-import useWriteIsPublic from 'src/hooks/useWriteIsPublic';
 import { TokenFactoryAbi } from '../../abi/index';
 interface DocumentCar {
   fileCar: CarReader;
@@ -204,6 +206,13 @@ function Document({ document }: { document: Doc_User }) {
 
     setLoading(false);
   };
+  const { successToast } = useToastCustom();
+  const { hasCopied, onCopy, setValue, value } = useClipboard('');
+  useEffect(() => {
+    if (hasCopied) {
+      successToast('Link as been Copied');
+    }
+  }, [hasCopied]);
   const shareToAddress = async () => {
     const cid = getCidFromFileUrl(document.fileUrl);
     const { publicKey, signedMessage } =
@@ -240,21 +249,65 @@ function Document({ document }: { document: Doc_User }) {
     }
     isPublicWrite?.();
   };
+  const onDownload = async () => {
+    const fileCID = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
+    const fileType = 'image/jpeg';
+    const keyObject = await lighthouse.fetchEncryptionKey(
+      fileCID,
+      publicKey,
+      signedMessage
+    );
+    const decrypted = await lighthouse.decryptFile(fileCID, keyObject.data.key);
+
+    const aElement = window.document.createElement('a');
+    aElement.setAttribute('download', `${document.title}.PNG`);
+    const href = URL.createObjectURL(decrypted);
+    aElement.href = href;
+    aElement.setAttribute('target', '_blank');
+    aElement.click();
+    URL.revokeObjectURL(href);
+  };
+  const onClipBoardClick = () => {
+    setValue(getViewUrlFromCid(getCidFromFileUrl(document.fileUrl)));
+    onCopy();
+    onCopy();
+  };
   return (
     <>
       <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
         <CardHeader>
           <HStack width={'100%'} justifyContent='space-between'>
             <Heading textAlign={'start'}>{document?.title}</Heading>
-            <IconButton
-              aria-label='share button'
-              colorScheme={'orange'}
-              variant='solid'
-              backgroundColor={'brand.500'}
-              icon={<HiShare />}
-              onClick={onShare}
-              borderRadius='3xl'
-            />
+            <VStack spacing={4} position='absolute' right={'3%'} top='3%'>
+              <IconButton
+                aria-label='share button'
+                colorScheme={'orange'}
+                variant='solid'
+                backgroundColor={'brand.500'}
+                icon={<HiShare />}
+                onClick={onShare}
+                borderRadius='3xl'
+              />
+              <IconButton
+                aria-label='downlaod button'
+                colorScheme={'c'}
+                variant='ghost'
+                backgroundColor={'brand.500'}
+                icon={<DownloadIcon />}
+                onClick={onDownload}
+                borderRadius='3xl'
+              />
+              <IconButton
+                aria-label='share button'
+                colorScheme={'whatsapp'}
+                variant='solid'
+                icon={<IoCopySharp />}
+                onClick={onClipBoardClick}
+                borderRadius='3xl'
+              />
+            </VStack>
           </HStack>
         </CardHeader>
         <CardBody>
@@ -595,7 +648,11 @@ function UserRecords() {
   console.log({ tokenData });
   console.log({ docs });
   if (!tokenAddress || tokenAddress == EMPTY_BYTES || tokenAddress == '') {
-    return <Spinner size='xl' color='red' />;
+    return (
+      <Center width={'100%'} height='100%'>
+        <Spinner size='xl' color='red' />
+      </Center>
+    );
   }
   return (
     <>
@@ -622,9 +679,13 @@ function UserRecords() {
               <Text as='h1' textAlign={'start'}>
                 Latest Document
               </Text>
-              {docs && docs[docs.length - 1] ? (
-                <Document document={docs[docs.length - 1]} />
-              ) : null}
+              {docs ? (
+                docs[docs.length - 1] ? (
+                  <Document document={docs[docs.length - 1]} />
+                ) : null
+              ) : (
+                <Spinner size={'xl'} color='blue' />
+              )}
             </VStack>
           </Stack>
           <Center>
@@ -766,12 +827,11 @@ function UserRecords() {
           >
             <Stack spacing={1} direction={'row'}>
               {/* <Document document={emptyDoc} /> */}
-
-              {docs.map((doc) => {
-                if (doc) {
-                  return <Document document={doc} />;
-                }
-              })}
+              {docs ? (
+                docs.map((doc) => <Document document={doc} />)
+              ) : (
+                <Spinner size={'xl'} color='blue' />
+              )}
             </Stack>
           </Stack>
         </Card>
