@@ -1,4 +1,5 @@
 import PageLayout from '@/components/page-layout';
+import { SpinnerContext } from '@/providers/SpinnerProvider';
 import { TokenAddressContext } from '@/providers/TokenAddressProvider';
 import { BLOODGROUP, User } from '@/types/user';
 import { safeIntToBigNumber, safeStringToBytes32 } from '@/utils/converter';
@@ -17,9 +18,10 @@ import { useRouter } from 'next/router';
 import { useContext, useEffect, useState } from 'react';
 import { ParentStorageAbi } from 'src/abi';
 import { BLOODGROUPS } from 'src/constants';
-import { BASEURI, PARENTCONTRACT } from 'src/data';
+import { BASEURI, EMPTY_BYTES, PARENTCONTRACT } from 'src/data';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
 import useToastCustom from 'src/hooks/useToastCustom';
+import { useDebounce } from 'usehooks-ts';
 import {
   useContractWrite,
   usePrepareContractWrite,
@@ -28,19 +30,28 @@ import {
 
 function index() {
   const [user, setUser] = useState<User>({} as User);
+  const userDebounce = useDebounce(user, 600);
+
   const { tokenAddress } = useGetTokenAddress();
   const [enable, setEnable] = useState(false);
   const { setTokenAddress } = useContext(TokenAddressContext);
+  const enableDebounce = useDebounce(enable, 600);
+
   const router = useRouter();
+  useEffect(() => {
+    if (tokenAddress !== EMPTY_BYTES) {
+      router.push('/profile');
+    }
+  }, []);
   console.log({
     sending: [
       safeStringToBytes32(BASEURI) as `0x${string}`,
-      safeStringToBytes32(user?.fullName) as `0x${string}`,
-      safeIntToBigNumber(user?.age),
-      safeStringToBytes32(user?.bloodGroup) as `0x${string}`,
-      safeStringToBytes32(user?.allergies) as `0x${string}`,
-      safeStringToBytes32(user?.medication) as `0x${string}`,
-      safeStringToBytes32(user?.about) as `0x${string}`,
+      safeStringToBytes32(userDebounce?.fullName) as `0x${string}`,
+      safeIntToBigNumber(userDebounce?.age),
+      safeStringToBytes32(userDebounce?.bloodGroup) as `0x${string}`,
+      safeStringToBytes32(userDebounce?.allergies) as `0x${string}`,
+      safeStringToBytes32(userDebounce?.medication) as `0x${string}`,
+      safeStringToBytes32(userDebounce?.about) as `0x${string}`,
     ],
   });
   const { config } = usePrepareContractWrite({
@@ -49,42 +60,55 @@ function index() {
     functionName: 'deployNFT',
     args: [
       safeStringToBytes32(BASEURI) as `0x${string}`,
-      safeStringToBytes32(user?.fullName) as `0x${string}`,
-      safeIntToBigNumber(user?.age),
-      safeStringToBytes32(user?.bloodGroup) as `0x${string}`,
-      safeStringToBytes32(user?.allergies) as `0x${string}`,
-      safeStringToBytes32(user?.medication) as `0x${string}`,
-      safeStringToBytes32(user?.about) as `0x${string}`,
+      safeStringToBytes32(userDebounce?.fullName) as `0x${string}`,
+      safeIntToBigNumber(userDebounce?.age),
+      safeStringToBytes32(userDebounce?.bloodGroup) as `0x${string}`,
+      safeStringToBytes32(userDebounce?.allergies) as `0x${string}`,
+      safeStringToBytes32(userDebounce?.medication) as `0x${string}`,
+      safeStringToBytes32(userDebounce?.about) as `0x${string}`,
     ],
-    enabled: enable,
+    enabled: enableDebounce,
     // onSettled() {
     //   successToast('User data stored and NFT factory deployed');
     //   router.push('/profile');
     // },
   });
+  const { spinner, setSpinnerText, setSpinner } = useContext(SpinnerContext);
+
   const { successToast } = useToastCustom();
   const { refetch: refetchTokenAddress } = useGetTokenAddress();
-  const { data, writeAsync } = useContractWrite(config);
-  const { isLoading, isSuccess } = useWaitForTransaction({
+  const { data, write } = useContractWrite(config);
+  const { isLoading, isSuccess, isFetching, isIdle } = useWaitForTransaction({
     hash: data?.hash,
   });
+
+  useEffect(() => {
+    if (isLoading) {
+      if (!spinner) {
+        setSpinner(true);
+      }
+      setSpinnerText(
+        'Waiting for Transaction Confirmation,Chill  it takes some time '
+      );
+    }
+  }, [isLoading]);
   useEffect(() => {
     if (isSuccess) {
       refetchTokenAddress().then((value) => {
-        console.log({ value });
+        setSpinner(false);
+
         router.push('/profile');
       });
     }
   }, [isSuccess]);
 
-  const submit = async () => {
+  const submit = async (e) => {
+    e.preventDefault();
     setEnable(!enable);
+    write?.();
+
+    alert("Click submit again if it doesn't work");
     console.log({ data });
-    await writeAsync?.();
-    // write?.();
-    // // if (isSuccess) {
-    // //   successToast('User data stored and NFT factory deployed');
-    // // }
   };
 
   return (
@@ -162,7 +186,7 @@ function index() {
                 ))}
               </SelectDefault>
             </FormControl>
-            <FormControl id='allergies' isRequired>
+            <FormControl id='allergies'>
               <FormLabel>Allergies</FormLabel>
               <Input
                 value={user.allergies}
@@ -172,13 +196,13 @@ function index() {
                     allergies: e.target.value,
                   });
                 }}
-                placeholder='In case of Nothing write NIL'
+                placeholder='Seperate By comma'
                 _placeholder={{
                   color: 'gray.500',
                 }}
               />
             </FormControl>
-            <FormControl id='medications' isRequired>
+            <FormControl id='medications'>
               <FormLabel>Medications</FormLabel>
               <Input
                 value={user.medication}
@@ -188,7 +212,7 @@ function index() {
                     medication: e.target.value,
                   });
                 }}
-                placeholder='In case of Nothing write NIL'
+                placeholder='Seperate By comma'
                 _placeholder={{
                   color: 'gray.500',
                 }}

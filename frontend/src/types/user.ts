@@ -11,8 +11,16 @@ export interface User {
 }
 export interface Doc_User {
   title: string;
-  Issued_By_Hospital : string;
+  Issued_By_Hospital: string;
   Issued_By_Doctor: string;
   Tag: string;
   Date_of_Issued: Date;
+  file: File;
+  fileUrl: string;
+  id: number;
+  name: string;
+}
+export interface MintParams {
+  dataDescription: string;
+  dataUrl: string;
 }
