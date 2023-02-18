@@ -18,7 +18,6 @@ contract TokenFactory is ERC721Enumerable, Ownable {
      */
 
     /// mapping recording the price of each token referenced by its cipher ID
-    mapping(uint256 => uint256) itemToPrice;
 
     // Token Factory Characteristics
     bytes32 _baseTokenURI;
@@ -78,18 +77,18 @@ contract TokenFactory is ERC721Enumerable, Ownable {
         return false;
     }
 
-    function removeFromArray(
-        address[] memory myArray,
-        address addressToRemove
-    ) public pure returns (address[] memory) {
-        for (uint i = 0; i < myArray.length; i++) {
-            if (myArray[i] == addressToRemove) {
-                myArray[i] = address(0);
-                break;
-            }
-        }
-        return myArray;
-    }
+    // function removeFromArray(
+    //     address[] memory myArray,
+    //     address addressToRemove
+    // ) public pure returns (address[] memory) {
+    //     for (uint i = 0; i < myArray.length; i++) {
+    //         if (myArray[i] == addressToRemove) {
+    //             myArray[i] = address(0);
+    //             break;
+    //         }
+    //     }
+    //     return myArray;
+    // }
 
     constructor(
         bytes32 baseURI,
@@ -225,15 +224,12 @@ contract TokenFactory is ERC721Enumerable, Ownable {
         id_TokenAccessDetailMapping[_tokenId]._is_public = _is_public;
     }
 
-    function addAllowedAddress(uint256 _tokenId, address _address) public onlyOwner {
-        id_TokenAccessDetailMapping[_tokenId]._allowedAddresses.push(_address);
-    }
+    // function addAllowedAddress(uint256 _tokenId, address _address) public onlyOwner {
+    //     id_TokenAccessDetailMapping[_tokenId]._allowedAddresses.push(_address);
+    // }
 
-    function removeAllowedAddress(uint256 _tokenId, address _address) public onlyOwner {
-        id_TokenAccessDetailMapping[_tokenId]._allowedAddresses = removeFromArray(
-            id_TokenAccessDetailMapping[_tokenId]._allowedAddresses,
-            _address
-        );
+    function replaceAllowedAddress(uint256 _tokenId, address[] memory _addresses) public onlyOwner {
+        id_TokenAccessDetailMapping[_tokenId]._allowedAddresses = _addresses;
     }
 
     /**

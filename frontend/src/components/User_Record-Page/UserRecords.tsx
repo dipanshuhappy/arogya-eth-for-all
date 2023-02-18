@@ -28,6 +28,7 @@ import {
   ModalOverlay,
   Spinner,
   Stack,
+  Tag,
   Text,
   useDisclosure,
   VStack,
@@ -51,11 +52,16 @@ import {
 import { SpinnerContext } from '@/providers/SpinnerProvider';
 import {
   fileToBlob,
+  getCidFromFileUrl,
   getFileUrl,
   getMetaDataUrl,
   safeIntToBigNumber,
 } from '@/utils/converter';
-import { getAccessControlConditions } from '@/utils/fetcher';
+import {
+  encryptionSignatureForLighthouse,
+  getAccessControlConditions,
+} from '@/utils/fetcher';
+import { DeleteIcon } from '@chakra-ui/icons';
 import { readContract } from '@wagmi/core';
 import { BigNumber } from 'ethers';
 import { useRouter } from 'next/router';
@@ -151,7 +157,7 @@ function Document({ document }: { document: Doc_User }) {
     };
   };
   const getFile = async () => {
-    const fileCID = document.fileUrl.split('/')[4];
+    const fileCID = getCidFromFileUrl(document.fileUrl);
     const { publicKey, signedMessage } = await encryptionSignature();
     const fileType = 'image/jpeg';
     const keyObject = await lighthouse.fetchEncryptionKey(
@@ -165,12 +171,30 @@ function Document({ document }: { document: Doc_User }) {
   };
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
-
+  const [newAddress, setNewAddress] = useState('');
+  const [refetchAddress, setRefchAddress] = useState(false);
+  useEffect(() => {
+    if (refetchAddress) {
+      const fetchInEffect = async () => {
+        const cid = getCidFromFileUrl(document.fileUrl);
+        const addressesResponse = await lighthouse.getAccessConditions(cid);
+        console.log({ addressesResponse });
+        setTokenAccessDetail({
+          ...tokenAccessDetail,
+          allowedAddresses: addressesResponse.data['sharedTo'] as string[],
+        });
+      };
+      fetchInEffect().then(() => {
+        setRefchAddress(false);
+      });
+    }
+  }, [refetchAddress]);
   const [tokenAccessDetail, setTokenAccessDetail] =
     useState<TokenAccessDetail>();
   const onShare = async () => {
     onOpen();
     setLoading(true);
+    const cid = getCidFromFileUrl(document.fileUrl);
     const data = await readContract({
       address: tokenAddress as `0x${string}`,
       abi: TokenFactoryAbi,
@@ -181,20 +205,47 @@ function Document({ document }: { document: Doc_User }) {
     console.log('Token access detail data', { data });
     const tokenDetailWithoutAddresses = deserialiseTokenAccessDetail(data);
 
-    const tokenAddressesData = await readContract({
-      address: tokenAddress as `0x${string}`,
-      abi: TokenFactoryAbi,
-      functionName: 'getAllowedAddress',
-      args: [safeIntToBigNumber(document.id)],
-    });
-    console.log({ tokenAddressesData });
+    // const tokenAddressesData = await readContract({
+    //   address: tokenAddress as `0x${string}`,
+    //   abi: TokenFactoryAbi,
+    //   functionName: 'getAllowedAddress',
+    //   args: [safeIntToBigNumber(document.id)],
+    // });
+    const addressesResponse = await lighthouse.getAccessConditions(cid);
+    console.log({ addressesResponse });
     setTokenAccessDetail({
       is_public: tokenDetailWithoutAddresses.is_public,
       price: tokenDetailWithoutAddresses.price,
-      allowedAddresses: tokenAddressesData as string[],
+      allowedAddresses: addressesResponse.data['sharedTo'] as string[],
     });
 
     setLoading(false);
+  };
+  const shareToAddress = async () => {
+    const cid = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
+    const resShareFile = await lighthouse.shareFile(
+      publicKey,
+      [newAddress],
+      cid,
+      signedMessage
+    );
+    setRefchAddress(true);
+    console.log({ resShareFile });
+  };
+  const revokeAccess = async (address: string) => {
+    const cid = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
+    const revokeResponse = await lighthouse.revokeFileAccess(
+      publicKey,
+      [address],
+      cid,
+      signedMessage
+    );
+    console.log({ revokeResponse });
+    setRefchAddress(true);
   };
   return (
     <>
@@ -243,15 +294,53 @@ function Document({ document }: { document: Doc_User }) {
             {!loading ? (
               <>
                 <HStack>
-                  <Input placeholder='Type User Wallet Here' />
+                  <Input
+                    placeholder='Type User Wallet Here'
+                    value={newAddress}
+                    onChange={(e) => {
+                      setNewAddress(e.target.value);
+                    }}
+                  />
                   <IconButton
                     aria-label='plus address'
                     borderRadius={'full'}
                     variant='outline'
                     backgroundColor={'brand.500'}
                     icon={<BsPlusLg />}
+                    onClick={shareToAddress}
                   />
                 </HStack>
+                <VStack
+                  marginTop={'4'}
+                  maxH={'200px'}
+                  overflow='auto'
+                  width={'100%'}
+                  spacing={'2'}
+                >
+                  {tokenAccessDetail &&
+                  tokenAccessDetail.allowedAddresses &&
+                  tokenAccessDetail.allowedAddresses.length != 0 ? (
+                    tokenAccessDetail.allowedAddresses.map((address) => {
+                      return (
+                        <HStack>
+                          <Tag>{address}</Tag>
+                          <IconButton
+                            onClick={() => {
+                              revokeAccess(address);
+                            }}
+                            aria-label='delete'
+                            icon={<DeleteIcon />}
+                            colorScheme={'red'}
+                            size='sm'
+                            borderRadius={'3xl'}
+                          />
+                        </HStack>
+                      );
+                    })
+                  ) : (
+                    <Text>No one is allowed for now</Text>
+                  )}
+                </VStack>
 
                 <Button marginTop={'3.5'} borderRadius={'xl'}>
                   Make Public
