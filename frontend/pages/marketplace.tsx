@@ -35,16 +35,9 @@ function index() {
             paddingBlock={'10'}
             size={'lg'}
           />
-          <InputRightElement
-            children={
-              <Search2Icon
-                marginRight={'10'}
-                boxSize={'10'}
-                color='green.500'
-              />
-            }
-            paddingBlock={'10'}
-          />
+          <InputRightElement paddingBlock={'10'}>
+            <Search2Icon marginRight={'10'} boxSize={'10'} color='green.500' />
+          </InputRightElement>
         </InputGroup>
       </Stack>
 
