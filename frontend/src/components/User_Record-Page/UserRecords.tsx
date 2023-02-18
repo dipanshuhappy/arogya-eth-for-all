@@ -14,6 +14,7 @@ import {
   FormLabel,
   Heading,
   HStack,
+  IconButton,
   Input,
   Modal,
   ModalBody,
@@ -46,8 +47,12 @@ import {
 
 import { SpinnerContext } from '@/providers/SpinnerProvider';
 import { fileToBlob, getFileUrl, getMetaDataUrl } from '@/utils/converter';
+import { getAccessControlConditions } from '@/utils/fetcher';
+import { BigNumber } from 'ethers';
 import { useRouter } from 'next/router';
 import { CarReader } from 'nft.storage/dist/src/lib/interface';
+import { BsPlusLg } from 'react-icons/bs';
+import { HiShare } from 'react-icons/hi';
 import { EMPTY_BYTES } from 'src/data';
 import useDocument from 'src/hooks/useDocument';
 import useLightHouse from 'src/hooks/useLightHouse';
@@ -137,13 +142,6 @@ function Document({ document }: { document: Doc_User }) {
     };
   };
   const getFile = async () => {
-    // await medusa.signForKeypair();
-    // setEnableFile(true);
-    // const respone = await fetch(document.fileUrl);
-    // const newText = await respone.text();
-    // setCipherText(newText);
-    // await writeAsync?.();
-    // console.log({ fileRequestId });
     const fileCID = document.fileUrl.split('/')[4];
     const { publicKey, signedMessage } = await encryptionSignature();
     const fileType = 'image/jpeg';
@@ -156,11 +154,27 @@ function Document({ document }: { document: Doc_User }) {
     console.log(decrypted);
     window.open(URL.createObjectURL(decrypted), '_blank');
   };
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const onShare = () => {
+    onOpen();
+  };
   return (
     <>
       <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
         <CardHeader>
-          <Heading textAlign={'start'}>{document?.title}</Heading>
+          <HStack width={'100%'} justifyContent='space-between'>
+            <Heading textAlign={'start'}>{document?.title}</Heading>
+            <IconButton
+              aria-label='share button'
+              colorScheme={'orange'}
+              variant='solid'
+              backgroundColor={'brand.500'}
+              icon={<HiShare />}
+              onClick={onShare}
+              borderRadius='3xl'
+            />
+          </HStack>
         </CardHeader>
         <CardBody>
           <VStack align={'start'} spacing={8}>
@@ -182,6 +196,38 @@ function Document({ document }: { document: Doc_User }) {
           </CardFooter>
         </Center>
       </Card>
+      <Modal onClose={onClose} isOpen={isOpen}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            Add Wallet Address of User you wanna allow, Or make file public
+          </ModalHeader>
+          <ModalBody>
+            <HStack>
+              <Input placeholder='Type User Wallet Here' />
+              <IconButton
+                aria-label='plus address'
+                borderRadius={'full'}
+                variant='outline'
+                backgroundColor={'brand.500'}
+                icon={<BsPlusLg />}
+              />
+            </HStack>
+
+            <Button marginTop={'3.5'} borderRadius={'xl'}>
+              Make Public
+            </Button>
+          </ModalBody>
+          <ModalFooter>
+            <HStack spacing={8}>
+              <Button colorScheme={'green'}>Confirm</Button>
+              <Button colorScheme={'red'} onClick={onClose}>
+                Close
+              </Button>
+            </HStack>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
@@ -334,6 +380,23 @@ function UserRecords() {
     );
 
     const fileUrl = getFileUrl(response.data.Hash);
+    const conditions = getAccessControlConditions(
+      tokenAddress,
+      parseInt((tokenIds as BigNumber).toString()) + 1
+    );
+    const aggregator = '([1])';
+    setSpinnerText('Setting up Encryption , Sign in once more');
+    const { publicKey: secondPulickey, signedMessage: secondSingedMessage } =
+      await encryptionSignature();
+    const accessResponse = await lighthouse.accessCondition(
+      secondPulickey,
+      response.data.Hash,
+      secondSingedMessage,
+      conditions,
+      aggregator,
+      'EVM'
+    );
+    console.log({ accessResponse });
     // const { encryptedData, encryptedKey } = await medusa.encrypt(
     //   new Uint8Array([]),
     //   tokenAddress as string
@@ -428,7 +491,7 @@ function UserRecords() {
           </Center>
           <Modal size={'md'} isCentered isOpen={isOpen} onClose={onClose}>
             {overlay}
-            <ModalContent marginTop={'64'} >
+            <ModalContent marginTop={'64'}>
               <ModalHeader>Please Fill The Be Details</ModalHeader>
               <ModalCloseButton />
 
