@@ -1,5 +1,8 @@
-import { Doc_User, MintParams, User } from '@/types/user';
-import { deserialiseUser } from '@/utils/deserialise';
+import { Doc_User, MintParams, TokenAccessDetail, User } from '@/types/user';
+import {
+  deserialiseTokenAccessDetail,
+  deserialiseUser,
+} from '@/utils/deserialise';
 
 import {
   Box,
@@ -46,8 +49,14 @@ import {
 } from 'wagmi';
 
 import { SpinnerContext } from '@/providers/SpinnerProvider';
-import { fileToBlob, getFileUrl, getMetaDataUrl } from '@/utils/converter';
+import {
+  fileToBlob,
+  getFileUrl,
+  getMetaDataUrl,
+  safeIntToBigNumber,
+} from '@/utils/converter';
 import { getAccessControlConditions } from '@/utils/fetcher';
+import { readContract } from '@wagmi/core';
 import { BigNumber } from 'ethers';
 import { useRouter } from 'next/router';
 import { CarReader } from 'nft.storage/dist/src/lib/interface';
@@ -155,9 +164,21 @@ function Document({ document }: { document: Doc_User }) {
     window.open(URL.createObjectURL(decrypted), '_blank');
   };
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const onShare = () => {
+  const [loading, setLoading] = useState(false);
+  const [tokenAccessDetail, setTokenAccessDetail] =
+    useState<TokenAccessDetail>();
+  const onShare = async () => {
     onOpen();
+    setLoading(true);
+    const data = await readContract({
+      address: tokenAddress as `0x${string}`,
+      abi: TokenFactoryAbi,
+      functionName: 'id_TokenAccessDetailMapping',
+      args: [safeIntToBigNumber(document.id)],
+    });
+    console.log('Token access detail data', { data });
+    setTokenAccessDetail(deserialiseTokenAccessDetail(data));
+    setLoading(false);
   };
   return (
     <>
@@ -203,20 +224,28 @@ function Document({ document }: { document: Doc_User }) {
             Add Wallet Address of User you wanna allow, Or make file public
           </ModalHeader>
           <ModalBody>
-            <HStack>
-              <Input placeholder='Type User Wallet Here' />
-              <IconButton
-                aria-label='plus address'
-                borderRadius={'full'}
-                variant='outline'
-                backgroundColor={'brand.500'}
-                icon={<BsPlusLg />}
-              />
-            </HStack>
+            {!loading ? (
+              <>
+                <HStack>
+                  <Input placeholder='Type User Wallet Here' />
+                  <IconButton
+                    aria-label='plus address'
+                    borderRadius={'full'}
+                    variant='outline'
+                    backgroundColor={'brand.500'}
+                    icon={<BsPlusLg />}
+                  />
+                </HStack>
 
-            <Button marginTop={'3.5'} borderRadius={'xl'}>
-              Make Public
-            </Button>
+                <Button marginTop={'3.5'} borderRadius={'xl'}>
+                  Make Public
+                </Button>
+              </>
+            ) : (
+              <Center width='100%'>
+                <Spinner colorScheme='cyan' size={'lg'} />
+              </Center>
+            )}
           </ModalBody>
           <ModalFooter>
             <HStack spacing={8}>

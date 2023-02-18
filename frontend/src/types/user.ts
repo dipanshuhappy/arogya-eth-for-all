@@ -24,3 +24,8 @@ export interface MintParams {
   dataDescription: string;
   dataUrl: string;
 }
+export interface TokenAccessDetail {
+  is_public: boolean;
+  price: number;
+  allowedAddresses: string[];
+}
