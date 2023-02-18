@@ -25,8 +25,20 @@ function FeatureItemLeft() {
           borderRightRadius={'full'}
           width={'80%'}
           height='100%'
-          bg={'blue'}
-        ></Box>
+          // bg={'black'}
+          borderColor={'blue'}
+        >
+          <Image
+            src='./assets/images/filecoin.jpg'
+            flexDirection={{base:'column', md:'row'}}
+            width={'100%'}
+            height={260}
+            borderRightRadius={'full'}
+            
+            >
+
+          </Image>
+        </Box>
       </Box>
       <Box borderLeft={'2px solid #000000'} flex={'0.5'}>
         <VStack
@@ -38,13 +50,13 @@ function FeatureItemLeft() {
           marginY={'8'}
         >
           <Text fontWeight={'bold'} fontSize={'2xl'} textAlign={'left'}>
-            Bring Your team together
+            How Filecoin Helped Us
           </Text>
           <Text justifyContent={'left'} fontSize={'medium'} textOverflow='clip'>
-            At the heart of Slack are channels: organized spaces for everyone
-            and everything you need for work. In channels, it’s easier to
-            connect across departments, offices, time zones and even other
-            companies.
+          Filecoin offers strong encryption and data protection mechanisms, 
+          ensuring that medical records remain private and tamper-proof. 
+          This is especially important for medical records, which contain 
+          sensitive information that needs to be kept confidential.
           </Text>
           <WalletConnect />
         </VStack>
@@ -68,7 +80,18 @@ function FeatureItemRight() {
           height='100%'
           bg={'blue'}
           marginLeft={'20%'}
-        ></Box>
+        >
+          <Image
+            src='./assets/images/arogya.png'
+            flexDirection={{base:'column', md:'row'}}
+            width={'100%'}
+            height={260}
+            borderLeftRadius={'full'}
+            
+            >
+
+          </Image>
+        </Box>
       </Box>
       <Box borderRight={'2px solid #000000'} flex={'0.5'}>
         <VStack
@@ -80,13 +103,13 @@ function FeatureItemRight() {
           marginY={'8'}
         >
           <Text fontWeight={'bold'} fontSize={'2xl'} textAlign={'left'}>
-            Bring Your team together
+            Unique Features of Arogya
           </Text>
           <Text justifyContent={'left'} fontSize={'medium'} textOverflow='clip'>
-            At the heart of Slack are channels: organized spaces for everyone
-            and everything you need for work. In channels, it’s easier to
-            connect across departments, offices, time zones and even other
-            companies.
+            Giving Access to others is on User Hand.
+            Users can sell their records in Arogya MarketPlace.
+            Anyone can buy the records by paying amount which set by user.
+
           </Text>
           <WalletConnect />
         </VStack>
