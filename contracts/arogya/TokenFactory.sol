@@ -11,73 +11,13 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 // Every instance of the contract TokenFcatory requires two special property i) baseURI ii) name of the user iii) Unique identifier of the nft collection (integer)
 // Only the owner who will be deploying this contract can mint tokens of this nft collection
 
-struct G1Point {
-    uint256 x;
-    uint256 y;
-}
-
-struct DleqProof {
-    uint256 f;
-    uint256 e;
-}
-
-/// @notice A 32-byte encrypted ciphertext
-struct Ciphertext {
-    G1Point random;
-    uint256 cipher;
-    /// DLEQ part
-    G1Point random2;
-    DleqProof dleq;
-}
-
-struct ReencryptedCipher {
-    G1Point random;
-    uint256 cipher;
-}
-
-interface IEncryptionClient {
-    /// @notice Callback to client contract when medusa posts a result
-    /// @dev Implement in client contracts of medusa
-    /// @param requestId The id of the original request
-    /// @param _cipher the reencryption result
-    function oracleResult(uint256 requestId, Ciphertext calldata _cipher) external;
-}
-
-interface IEncryptionOracle {
-    /// @notice submit a ciphertext that can be retrieved at the given link and
-    /// has been created by this encryptor address. The ciphertext proof is checked
-    /// and if correct, being signalled to Medusa.
-    function submitCiphertext(
-        Ciphertext calldata _cipher,
-        bytes calldata _link,
-        address _encryptor
-    ) external returns (uint256);
-
-    /// @notice Request reencryption of a cipher text for a user
-    /// @dev msg.sender must be The "owner" or submitter of the ciphertext or the oracle will not reply
-    ///  _cipherId the id of the ciphertext to reencrypt
-    ///  _publicKey the public key of the recipient
-    /// @return the reencryption request id
-    function requestReencryption(
-        uint256 _cipherId,
-        G1Point calldata _publickey
-    ) external returns (uint256);
-}
-
-error CallbackNotAuthorized();
-
-contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
+contract TokenFactory is ERC721Enumerable, Ownable {
     /**
      * @dev _baseTokenURI for computing {tokenURI}. If set, the resulting URI for each
      * token will be the concatenation of the `baseURI` and the `tokenId`.
      */
 
-    /// @notice The Encryption Oracle Instance
-    address public medusaOracleAddress = 0xb0dd3eB2374b21b6efAcf41A16e25Ed8114734E0;
-    IEncryptionOracle public oracle;
-
     /// mapping recording the price of each token referenced by its cipher ID
-    mapping(uint256 => uint256) itemToPrice;
 
     // Token Factory Characteristics
     bytes32 _baseTokenURI;
@@ -128,6 +68,28 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
         return concatenate(a2, new_b2);
     }
 
+    function isInArray(address[] memory myArray, address myAddress) public pure returns (bool) {
+        for (uint i = 0; i < myArray.length; i++) {
+            if (myArray[i] == myAddress) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // function removeFromArray(
+    //     address[] memory myArray,
+    //     address addressToRemove
+    // ) public pure returns (address[] memory) {
+    //     for (uint i = 0; i < myArray.length; i++) {
+    //         if (myArray[i] == addressToRemove) {
+    //             myArray[i] = address(0);
+    //             break;
+    //         }
+    //     }
+    //     return myArray;
+    // }
+
     constructor(
         bytes32 baseURI,
         bytes32 ownerName,
@@ -139,8 +101,6 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
         bytes32 ownerAbout,
         uint256 uid
     ) ERC721(getFinalString("Token Factory", uid), getFinalString("TF", uid)) {
-        oracle = IEncryptionOracle(medusaOracleAddress);
-
         _baseTokenURI = baseURI;
         _collectionId = uid;
 
@@ -165,7 +125,13 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
 
     // mapping(uint => BuyDeal[]) public buyDealsForTokenId; // buyDealsForTokenId[tokenId], contains all the BuyDeal Objects which have requested for tokenId
     mapping(uint => TokenDetail) public id_TokenDetailMapping; // Mapping of Id with Details
-    mapping(uint => mapping(address => bool)) _allowedAddresesFor_ReEncryption;
+    mapping(uint => TokenAccessDetail) public id_TokenAccessDetailMapping;
+
+    struct TokenAccessDetail {
+        bool _is_public;
+        uint256 _price;
+        address[] _allowedAddresses;
+    }
 
     struct TokenDetail {
         address payable _addressOfOwner;
@@ -198,36 +164,34 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
             _dataUrl: dataUrl
         });
 
+        TokenAccessDetail memory _newTokenAccessDetail = TokenAccessDetail(
+            false,
+            0,
+            new address[](0)
+        );
+
         id_TokenDetailMapping[tokenIds] = _newTokenDetail;
-        _allowedAddresesFor_ReEncryption[tokenIds][ownerDetails._ownerAddress] = true;
+        id_TokenAccessDetailMapping[tokenIds] = _newTokenAccessDetail;
 
         return tokenIds;
     }
 
-    //Events
-    event NewReencryptionRequest(
-        address indexed buyer,
-        address indexed seller,
-        uint256 requestId,
-        uint256 cipherId
-    );
-    event EntryIntoDecryptionProcess(uint256 indexed requestId, Ciphertext ciphertext);
-
-    //Modifiers
-    modifier onlyOracle() {
-        if (msg.sender != address(oracle)) {
-            revert CallbackNotAuthorized();
+    function isUserValid(uint256 tokenId, address userAddress) public view returns (bool) {
+        if (id_TokenDetailMapping[tokenId]._addressOfOwner == userAddress) {
+            return true;
+        } else if (id_TokenAccessDetailMapping[tokenId]._is_public) {
+            return true;
+        } else {
+            return isInArray(id_TokenAccessDetailMapping[tokenId]._allowedAddresses, userAddress);
         }
-        _;
     }
+
+    //Events
 
     /// oracleResult gets called when the Medusa network successfully reencrypted
     /// the ciphertext to the given public key called in the previous method.
     /// This contract here simply emits an event so the client can listen on it and
     /// pick up on the cipher and locally decrypt.
-    function oracleResult(uint256 requestId, Ciphertext calldata cipher) external onlyOracle {
-        emit EntryIntoDecryptionProcess(requestId, cipher);
-    }
 
     //Generate a reencryption request -> returns requestId
     // function buyTokenId(uint256 targetTokenId) external payable returns (uint256) {
@@ -246,6 +210,26 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
 
     function getOwnerDetails() public view returns (ownerDetailsType memory) {
         return ownerDetails;
+    }
+
+    function getAllowedAddress(uint256 tokenId) public view returns (address[] memory) {
+        return id_TokenAccessDetailMapping[tokenId]._allowedAddresses;
+    }
+
+    function setPrice(uint256 _tokenId, uint256 new_price) public onlyOwner {
+        id_TokenAccessDetailMapping[_tokenId]._price = new_price;
+    }
+
+    function setIsPublic(uint256 _tokenId, bool _is_public) public onlyOwner {
+        id_TokenAccessDetailMapping[_tokenId]._is_public = _is_public;
+    }
+
+    // function addAllowedAddress(uint256 _tokenId, address _address) public onlyOwner {
+    //     id_TokenAccessDetailMapping[_tokenId]._allowedAddresses.push(_address);
+    // }
+
+    function replaceAllowedAddress(uint256 _tokenId, address[] memory _addresses) public onlyOwner {
+        id_TokenAccessDetailMapping[_tokenId]._allowedAddresses = _addresses;
     }
 
     /**

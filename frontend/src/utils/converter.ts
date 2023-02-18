@@ -11,6 +11,9 @@ export const getFileUrl = (cid: string) =>
   `https://gateway.lighthouse.storage/ipfs/${cid}`;
 export const getMetaDataUrl = (cid: string) =>
   `https://${cid}.ipfs.nftstorage.link/metadata.json`;
+export const getCidFromFileUrl = (url: string) => url.split('/')[4];
+export const getViewUrlFromCid = (cid: string) =>
+  `https://files.lighthouse.storage/viewFile/${cid}`;
 export async function getMaxPriorityFeePerGas(provider) {
   // Blame FEVM
   let maxPriorityFee = null;

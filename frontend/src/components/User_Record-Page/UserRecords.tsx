@@ -1,5 +1,8 @@
-import { Doc_User, MintParams, User } from '@/types/user';
-import { deserialiseUser } from '@/utils/deserialise';
+import { Doc_User, MintParams, TokenAccessDetail, User } from '@/types/user';
+import {
+  deserialiseTokenAccessDetail,
+  deserialiseUser,
+} from '@/utils/deserialise';
 
 import {
   Box,
@@ -14,6 +17,7 @@ import {
   FormLabel,
   Heading,
   HStack,
+  IconButton,
   Input,
   Modal,
   ModalBody,
@@ -24,7 +28,9 @@ import {
   ModalOverlay,
   Spinner,
   Stack,
+  Tag,
   Text,
+  useClipboard,
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
@@ -33,9 +39,33 @@ import lighthouse from '@lighthouse-web3/sdk';
 
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 
+import { SpinnerContext } from '@/providers/SpinnerProvider';
+import {
+  fileToBlob,
+  getCidFromFileUrl,
+  getFileUrl,
+  getMetaDataUrl,
+  getViewUrlFromCid,
+  safeIntToBigNumber,
+} from '@/utils/converter';
+import {
+  encryptionSignatureForLighthouse,
+  getAccessControlConditions,
+} from '@/utils/fetcher';
+import { DeleteIcon, DownloadIcon } from '@chakra-ui/icons';
+import { BigNumber } from 'ethers';
+import { useRouter } from 'next/router';
 import { NFTStorage } from 'nft.storage';
+import { CarReader } from 'nft.storage/dist/src/lib/interface';
+import { BsPlusLg } from 'react-icons/bs';
+import { HiShare } from 'react-icons/hi';
+import { IoCopySharp } from 'react-icons/io5';
+import { EMPTY_BYTES } from 'src/data';
+import useDocument from 'src/hooks/useDocument';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
+import useLightHouse from 'src/hooks/useLightHouse';
 import useToastCustom from 'src/hooks/useToastCustom';
+import useWriteIsPublic from 'src/hooks/useWriteIsPublic';
 import {
   useContractRead,
   useContractWrite,
@@ -43,14 +73,6 @@ import {
   useSigner,
   useWaitForTransaction,
 } from 'wagmi';
-
-import { SpinnerContext } from '@/providers/SpinnerProvider';
-import { fileToBlob, getFileUrl, getMetaDataUrl } from '@/utils/converter';
-import { useRouter } from 'next/router';
-import { CarReader } from 'nft.storage/dist/src/lib/interface';
-import { EMPTY_BYTES } from 'src/data';
-import useDocument from 'src/hooks/useDocument';
-import useLightHouse from 'src/hooks/useLightHouse';
 import { TokenFactoryAbi } from '../../abi/index';
 interface DocumentCar {
   fileCar: CarReader;
@@ -86,66 +108,31 @@ function UserProfile({ user }: { user: User }) {
 function Document({ document }: { document: Doc_User }) {
   const [enableFile, setEnableFile] = useState(false);
 
-  const [blob, setBlob] = useState<Blob>();
-  const [cipherText, setCipherText] = useState('');
-
-  const [fileRequestId, setFileRequestId] = useState<number>();
   const { tokenAddress } = useGetTokenAddress();
-  const { data: signer } = useSigner();
-  // const { config: getRequestIdConfig } = usePrepareContractWrite({
-  //   address: tokenAddress as `0x${string}`,
-  //   abi: TokenFactoryAbi,
-  //   functionName: 'buyTokenId',
-  //   args: [safeIntToBigNumber(document.id), medusa.keypair.pubkey.toEvm()],
-  //   overrides: { value: BigNumber.from(0) },
-  //   enabled: !enableFile,
-  //   onSuccess(data) {},
-  // });
-  // const [downloadUrl, setDownloadUrl] = useState('');
-  // console.log({ downloadUrl });
-  // // const { data, writeAsync } = useContractWrite(getRequestIdConfig);
-  // const { isLoading, isSuccess } = useWaitForTransaction({
-  //   hash: data?.hash,
-  // });
+  const { data: accessDetailData } = useContractRead({
+    address: tokenAddress as `0x${string}`,
+    abi: TokenFactoryAbi,
+    functionName: 'id_TokenAccessDetailMapping',
+    args: [safeIntToBigNumber(document.id)],
+    watch: true,
+  });
+  useEffect(() => {
+    if (accessDetailData) {
+      console.log('Token access detail data', { accessDetailData });
+      const tokenDetailWithoutAddresses =
+        deserialiseTokenAccessDetail(accessDetailData);
+      setTokenAccessDetail({
+        allowedAddresses: [],
+        is_public: tokenDetailWithoutAddresses.is_public,
+        price: tokenDetailWithoutAddresses.price,
+      });
+    }
+  }, [accessDetailData]);
 
-  // useEffect(() => {
-  //   if (isSuccess) {
-  //     const encryptedBytes = base64.decode(cipherText);
-  //     const decryptContent = async () => {
-  //       if (decryptions.length != 0) {
-  //         const decryptedBytes = await medusa.decrypt(
-  //           decryptions[decryptions.length - 1].ciphertext,
-  //           encryptedBytes
-  //         );
-  //         const msg = new TextDecoder().decode(decryptedBytes);
-  //         if (msg.startsWith('data:image')) {
-  //           setDownloadUrl(window.URL.createObjectURL(new Blob([msg])));
-  //         }
-  //       }
-  //     };
-  //     decryptContent();
-  //   }
-  // }, [isSuccess]);
-  const encryptionSignature = async () => {
-    const address = await signer.getAddress();
-    const messageRequested = (await lighthouse.getAuthMessage(address)).data
-      .message;
-    const signedMessage = await signer.signMessage(messageRequested);
-    return {
-      signedMessage: signedMessage,
-      publicKey: address,
-    };
-  };
   const getFile = async () => {
-    // await medusa.signForKeypair();
-    // setEnableFile(true);
-    // const respone = await fetch(document.fileUrl);
-    // const newText = await respone.text();
-    // setCipherText(newText);
-    // await writeAsync?.();
-    // console.log({ fileRequestId });
-    const fileCID = document.fileUrl.split('/')[4];
-    const { publicKey, signedMessage } = await encryptionSignature();
+    const fileCID = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
     const fileType = 'image/jpeg';
     const keyObject = await lighthouse.fetchEncryptionKey(
       fileCID,
@@ -156,11 +143,172 @@ function Document({ document }: { document: Doc_User }) {
     console.log(decrypted);
     window.open(URL.createObjectURL(decrypted), '_blank');
   };
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [loading, setLoading] = useState(false);
+  const [newAddress, setNewAddress] = useState('');
+  const [refetchAddress, setRetchAddress] = useState(false);
+  useEffect(() => {
+    if (refetchAddress) {
+      const fetchInEffect = async () => {
+        const cid = getCidFromFileUrl(document.fileUrl);
+        const addressesResponse = await lighthouse.getAccessConditions(cid);
+        console.log({ addressesResponse });
+        setTokenAccessDetail({
+          ...tokenAccessDetail,
+          allowedAddresses: addressesResponse.data['sharedTo'] as string[],
+        });
+      };
+      fetchInEffect().then(() => {
+        setRetchAddress(false);
+      });
+    }
+  }, [refetchAddress]);
+  const {
+    isLoading: isPublicWriteLoading,
+    changeIsPublic,
+    isSuccess: isPublicWriteSuccess,
+    write: isPublicWrite,
+  } = useWriteIsPublic(document.id);
+  const { setSpinner, spinner, setSpinnerText } = useContext(SpinnerContext);
+  useEffect(() => {
+    if (isPublicWriteLoading) {
+      if (!spinner) {
+        setSpinner(true);
+      }
+      setSpinnerText(
+        'Waiting for Transaction Confirmation,Chill  it takes some time '
+      );
+    }
+    if (!isPublicWriteLoading && isPublicWriteSuccess) {
+      setSpinnerText('Uploading image to ipfs using Filecoin');
+      setSpinner(false);
+    }
+  }, [isPublicWriteLoading]);
+  const [tokenAccessDetail, setTokenAccessDetail] =
+    useState<TokenAccessDetail>();
+  const onShare = async () => {
+    onOpen();
+    setLoading(true);
+    const cid = getCidFromFileUrl(document.fileUrl);
+
+    // const tokenAddressesData = await readContract({
+    //   address: tokenAddress as `0x${string}`,
+    //   abi: TokenFactoryAbi,
+    //   functionName: 'getAllowedAddress',
+    //   args: [safeIntToBigNumber(document.id)],
+    // });
+    const addressesResponse = await lighthouse.getAccessConditions(cid);
+    console.log({ addressesResponse });
+    setTokenAccessDetail({
+      ...tokenAccessDetail,
+      allowedAddresses: addressesResponse.data['sharedTo'] as string[],
+    });
+
+    setLoading(false);
+  };
+  const { successToast } = useToastCustom();
+  const { hasCopied, onCopy, setValue, value } = useClipboard('');
+  useEffect(() => {
+    if (hasCopied) {
+      successToast('Link as been Copied');
+    }
+  }, [hasCopied]);
+  const shareToAddress = async () => {
+    const cid = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
+    const resShareFile = await lighthouse.shareFile(
+      publicKey,
+      [newAddress],
+      cid,
+      signedMessage
+    );
+    setRetchAddress(true);
+    console.log({ resShareFile });
+  };
+  const revokeAccess = async (address: string) => {
+    const cid = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
+    const revokeResponse = await lighthouse.revokeFileAccess(
+      publicKey,
+      [address],
+      cid,
+      signedMessage
+    );
+    console.log({ revokeResponse });
+    setRetchAddress(true);
+  };
+  const makeFilePublic = async () => {
+    setSpinner(true);
+    changeIsPublic(!tokenAccessDetail.is_public);
+    onClose();
+    if (!isPublicWrite) {
+      setSpinner(false);
+      alert('An error happen , click the button again ');
+    }
+    isPublicWrite?.();
+  };
+  const onDownload = async () => {
+    const fileCID = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
+    const fileType = 'image/jpeg';
+    const keyObject = await lighthouse.fetchEncryptionKey(
+      fileCID,
+      publicKey,
+      signedMessage
+    );
+    const decrypted = await lighthouse.decryptFile(fileCID, keyObject.data.key);
+
+    const aElement = window.document.createElement('a');
+    aElement.setAttribute('download', `${document.title}.PNG`);
+    const href = URL.createObjectURL(decrypted);
+    aElement.href = href;
+    aElement.setAttribute('target', '_blank');
+    aElement.click();
+    URL.revokeObjectURL(href);
+  };
+  const onClipBoardClick = () => {
+    setValue(getViewUrlFromCid(getCidFromFileUrl(document.fileUrl)));
+    onCopy();
+    onCopy();
+  };
   return (
     <>
       <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
         <CardHeader>
-          <Heading textAlign={'start'}>{document?.title}</Heading>
+          <HStack width={'100%'} justifyContent='space-between'>
+            <Heading textAlign={'start'}>{document?.title}</Heading>
+            <VStack spacing={4} position='absolute' right={'3%'} top='3%'>
+              <IconButton
+                aria-label='share button'
+                colorScheme={'orange'}
+                variant='solid'
+                backgroundColor={'brand.500'}
+                icon={<HiShare />}
+                onClick={onShare}
+                borderRadius='3xl'
+              />
+              <IconButton
+                aria-label='downlaod button'
+                colorScheme={'c'}
+                variant='ghost'
+                backgroundColor={'brand.500'}
+                icon={<DownloadIcon />}
+                onClick={onDownload}
+                borderRadius='3xl'
+              />
+              <IconButton
+                aria-label='share button'
+                colorScheme={'whatsapp'}
+                variant='solid'
+                icon={<IoCopySharp />}
+                onClick={onClipBoardClick}
+                borderRadius='3xl'
+              />
+            </VStack>
+          </HStack>
         </CardHeader>
         <CardBody>
           <VStack align={'start'} spacing={8}>
@@ -172,6 +320,26 @@ function Document({ document }: { document: Doc_User }) {
             <Text as='b'>
               Date of Issue: {document?.Date_of_Issued.toISOString()}
             </Text>
+            {tokenAccessDetail && (
+              <>
+                {' '}
+                <Text
+                  textAlign={'center'}
+                  color='black'
+                  fontSize='large'
+                  width='100%'
+                >
+                  {tokenAccessDetail?.is_public
+                    ? 'This file is Public '
+                    : 'This file is Private'}
+                </Text>
+                <Text textAlign={'center'} fontSize='medium' width='100%'>
+                  {tokenAccessDetail?.price !== 0
+                    ? `This file is set at price ${tokenAccessDetail.price} `
+                    : null}
+                </Text>
+              </>
+            )}
           </VStack>
         </CardBody>
         <Center>
@@ -182,6 +350,91 @@ function Document({ document }: { document: Doc_User }) {
           </CardFooter>
         </Center>
       </Card>
+      <Modal onClose={onClose} isOpen={isOpen}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            Add Wallet Address of User you wanna allow, Or make file public
+          </ModalHeader>
+          <ModalBody>
+            {!loading ? (
+              <>
+                <HStack>
+                  <Input
+                    placeholder='Type User Wallet Here'
+                    value={newAddress}
+                    onChange={(e) => {
+                      setNewAddress(e.target.value);
+                    }}
+                  />
+                  <IconButton
+                    aria-label='plus address'
+                    borderRadius={'full'}
+                    variant='outline'
+                    backgroundColor={'brand.500'}
+                    icon={<BsPlusLg />}
+                    onClick={shareToAddress}
+                  />
+                </HStack>
+                <VStack
+                  marginTop={'4'}
+                  maxH={'200px'}
+                  overflow='auto'
+                  width={'100%'}
+                  spacing={'2'}
+                >
+                  {tokenAccessDetail &&
+                  tokenAccessDetail.allowedAddresses &&
+                  tokenAccessDetail.allowedAddresses.length != 0 ? (
+                    tokenAccessDetail.allowedAddresses.map((address) => {
+                      return (
+                        <HStack>
+                          <Tag>{address}</Tag>
+                          <IconButton
+                            onClick={() => {
+                              revokeAccess(address);
+                            }}
+                            aria-label='delete'
+                            icon={<DeleteIcon />}
+                            colorScheme={'red'}
+                            size='sm'
+                            borderRadius={'3xl'}
+                          />
+                        </HStack>
+                      );
+                    })
+                  ) : (
+                    <Text>No one is allowed for now</Text>
+                  )}
+                </VStack>
+
+                <Button
+                  marginTop={'3.5'}
+                  borderRadius={'xl'}
+                  onClick={makeFilePublic}
+                  isLoading={isPublicWriteLoading}
+                >
+                  {tokenAccessDetail?.is_public
+                    ? 'Make Private'
+                    : 'Make Public'}
+                </Button>
+              </>
+            ) : (
+              <Center width='100%'>
+                <Spinner colorScheme='cyan' size={'lg'} />
+              </Center>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <HStack spacing={8}>
+              <Button colorScheme={'green'}>Confirm</Button>
+              <Button colorScheme={'red'} onClick={onClose}>
+                Close
+              </Button>
+            </HStack>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
@@ -334,6 +587,23 @@ function UserRecords() {
     );
 
     const fileUrl = getFileUrl(response.data.Hash);
+    const conditions = getAccessControlConditions(
+      tokenAddress,
+      parseInt((tokenIds as BigNumber).toString()) + 1
+    );
+    const aggregator = '([1])';
+    setSpinnerText('Setting up Encryption , Sign in once more');
+    const { publicKey: secondPulickey, signedMessage: secondSingedMessage } =
+      await encryptionSignature();
+    const accessResponse = await lighthouse.accessCondition(
+      secondPulickey,
+      response.data.Hash,
+      secondSingedMessage,
+      conditions,
+      aggregator,
+      'EVM'
+    );
+    console.log({ accessResponse });
     // const { encryptedData, encryptedKey } = await medusa.encrypt(
     //   new Uint8Array([]),
     //   tokenAddress as string
@@ -378,7 +648,11 @@ function UserRecords() {
   console.log({ tokenData });
   console.log({ docs });
   if (!tokenAddress || tokenAddress == EMPTY_BYTES || tokenAddress == '') {
-    return <Spinner size='xl' color='red' />;
+    return (
+      <Center width={'100%'} height='100%'>
+        <Spinner size='xl' color='red' />
+      </Center>
+    );
   }
   return (
     <>
@@ -405,9 +679,13 @@ function UserRecords() {
               <Text as='h1' textAlign={'start'}>
                 Latest Document
               </Text>
-              {docs && docs[docs.length - 1] ? (
-                <Document document={docs[docs.length - 1]} />
-              ) : null}
+              {docs ? (
+                docs[docs.length - 1] ? (
+                  <Document document={docs[docs.length - 1]} />
+                ) : null
+              ) : (
+                <Spinner size={'xl'} color='blue' />
+              )}
             </VStack>
           </Stack>
           <Center>
@@ -428,7 +706,7 @@ function UserRecords() {
           </Center>
           <Modal size={'md'} isCentered isOpen={isOpen} onClose={onClose}>
             {overlay}
-            <ModalContent marginTop={'64'} >
+            <ModalContent marginTop={'64'}>
               <ModalHeader>Please Fill The Be Details</ModalHeader>
               <ModalCloseButton />
 
@@ -547,16 +825,13 @@ function UserRecords() {
             // minW={'90%'}
             direction={{ base: 'column', md: 'row' }}
           >
-            <Stack spacing={1} direction={{ base: 'column', md: 'row' }}>
+            <Stack spacing={1} direction={'row'}>
               {/* <Document document={emptyDoc} /> */}
-
-              {docs.map((doc) => {
-                if (doc) {
-                  return <Document document={doc} />;
-                } else {
-                  return <Spinner size={'xl'} color='blue' />;
-                }
-              })}
+              {docs ? (
+                docs.map((doc) => <Document document={doc} />)
+              ) : (
+                <Spinner size={'xl'} color='blue' />
+              )}
             </Stack>
           </Stack>
         </Card>

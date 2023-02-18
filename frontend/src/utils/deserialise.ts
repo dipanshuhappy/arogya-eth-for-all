@@ -1,4 +1,4 @@
-import { BLOODGROUP, Doc_User, User } from '@/types/user';
+import { BLOODGROUP, Doc_User, TokenAccessDetail, User } from '@/types/user';
 import { parseBytes32String } from '@ethersproject/strings';
 
 export const deserialiseUser = (data: any): User => {
@@ -38,4 +38,12 @@ export const deserialiseDoc = async (data: any): Promise<Doc_User> => {
       Issued_By_Hospital: tokenDetailJson['properties']['hospital_issued_by'],
     };
   }
+};
+
+export const deserialiseTokenAccessDetail = (data: any): TokenAccessDetail => {
+  return {
+    is_public: Boolean(data[0]),
+    price: parseInt(data[1].toString()),
+    allowedAddresses: data[2] as string[],
+  } as TokenAccessDetail;
 };
