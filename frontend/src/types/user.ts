@@ -1,4 +1,3 @@
-import { EVMCipher } from '@medusa-network/medusa-sdk/lib/src/hgamal';
 import { BLOODGROUPS } from 'src/constants';
 export type BLOODGROUP = (typeof BLOODGROUPS)[number];
 export interface User {
@@ -18,12 +17,10 @@ export interface Doc_User {
   Date_of_Issued: Date;
   file: File;
   fileUrl: string;
-  cipher_id: number;
   id: number;
   name: string;
 }
 export interface MintParams {
   dataDescription: string;
   dataUrl: string;
-  cipher: EVMCipher;
 }

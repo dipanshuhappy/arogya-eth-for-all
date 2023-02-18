@@ -16,6 +16,7 @@
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@fontsource/josefin-sans": "^4.5.1",
+    "@lighthouse-web3/sdk": "^0.1.12",
     "@medusa-network/medusa-sdk": "^0.0.2",
     "bytes32": "^0.0.3",
     "chakra-react-select": "^4.4.3",

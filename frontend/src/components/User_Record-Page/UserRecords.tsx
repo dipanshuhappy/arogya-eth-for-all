@@ -14,7 +14,6 @@ import {
   FormLabel,
   Heading,
   HStack,
-  Image,
   Input,
   Modal,
   ModalBody,
@@ -30,35 +29,28 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
+import lighthouse from '@lighthouse-web3/sdk';
+
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 
 import { NFTStorage } from 'nft.storage';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
 import useToastCustom from 'src/hooks/useToastCustom';
 import {
-  useContract,
   useContractRead,
   useContractWrite,
   usePrepareContractWrite,
-  useProvider,
   useSigner,
   useWaitForTransaction,
 } from 'wagmi';
 
-import { MedusaContext } from '@/providers/MedusaProvider';
 import { SpinnerContext } from '@/providers/SpinnerProvider';
-import {
-  fileToBlob,
-  getFileUrl,
-  getMetaDataUrl,
-  safeIntToBigNumber,
-} from '@/utils/converter';
-import { BigNumber } from 'ethers';
-import { base64 } from 'ethers/lib/utils.js';
+import { fileToBlob, getFileUrl, getMetaDataUrl } from '@/utils/converter';
+import { useRouter } from 'next/router';
 import { CarReader } from 'nft.storage/dist/src/lib/interface';
 import { EMPTY_BYTES } from 'src/data';
 import useDocument from 'src/hooks/useDocument';
-import useMedusa from 'src/hooks/useMedusa';
+import useLightHouse from 'src/hooks/useLightHouse';
 import { TokenFactoryAbi } from '../../abi/index';
 interface DocumentCar {
   fileCar: CarReader;
@@ -93,54 +85,76 @@ function UserProfile({ user }: { user: User }) {
 }
 function Document({ document }: { document: Doc_User }) {
   const [enableFile, setEnableFile] = useState(false);
-  const { medusa, decryptions } = useMedusa();
+
   const [blob, setBlob] = useState<Blob>();
   const [cipherText, setCipherText] = useState('');
 
   const [fileRequestId, setFileRequestId] = useState<number>();
   const { tokenAddress } = useGetTokenAddress();
-  const { config: getRequestIdConfig } = usePrepareContractWrite({
-    address: tokenAddress as `0x${string}`,
-    abi: TokenFactoryAbi,
-    functionName: 'buyTokenId',
-    args: [safeIntToBigNumber(document.id), medusa.keypair.pubkey.toEvm()],
-    overrides: { value: BigNumber.from(0) },
-    enabled: !enableFile,
-    onSuccess(data) {},
-  });
-  const [downloadUrl, setDownloadUrl] = useState('');
-  console.log({ downloadUrl });
-  const { data, writeAsync } = useContractWrite(getRequestIdConfig);
-  const { isLoading, isSuccess } = useWaitForTransaction({
-    hash: data?.hash,
-  });
+  const { data: signer } = useSigner();
+  // const { config: getRequestIdConfig } = usePrepareContractWrite({
+  //   address: tokenAddress as `0x${string}`,
+  //   abi: TokenFactoryAbi,
+  //   functionName: 'buyTokenId',
+  //   args: [safeIntToBigNumber(document.id), medusa.keypair.pubkey.toEvm()],
+  //   overrides: { value: BigNumber.from(0) },
+  //   enabled: !enableFile,
+  //   onSuccess(data) {},
+  // });
+  // const [downloadUrl, setDownloadUrl] = useState('');
+  // console.log({ downloadUrl });
+  // // const { data, writeAsync } = useContractWrite(getRequestIdConfig);
+  // const { isLoading, isSuccess } = useWaitForTransaction({
+  //   hash: data?.hash,
+  // });
 
-  useEffect(() => {
-    if (isSuccess) {
-      const encryptedBytes = base64.decode(cipherText);
-      const decryptContent = async () => {
-        if (decryptions.length != 0) {
-          const decryptedBytes = await medusa.decrypt(
-            decryptions[decryptions.length - 1].ciphertext,
-            encryptedBytes
-          );
-          const msg = new TextDecoder().decode(decryptedBytes);
-          if (msg.startsWith('data:image')) {
-            setDownloadUrl(window.URL.createObjectURL(new Blob([msg])));
-          }
-        }
-      };
-      decryptContent();
-    }
-  }, [isSuccess]);
+  // useEffect(() => {
+  //   if (isSuccess) {
+  //     const encryptedBytes = base64.decode(cipherText);
+  //     const decryptContent = async () => {
+  //       if (decryptions.length != 0) {
+  //         const decryptedBytes = await medusa.decrypt(
+  //           decryptions[decryptions.length - 1].ciphertext,
+  //           encryptedBytes
+  //         );
+  //         const msg = new TextDecoder().decode(decryptedBytes);
+  //         if (msg.startsWith('data:image')) {
+  //           setDownloadUrl(window.URL.createObjectURL(new Blob([msg])));
+  //         }
+  //       }
+  //     };
+  //     decryptContent();
+  //   }
+  // }, [isSuccess]);
+  const encryptionSignature = async () => {
+    const address = await signer.getAddress();
+    const messageRequested = (await lighthouse.getAuthMessage(address)).data
+      .message;
+    const signedMessage = await signer.signMessage(messageRequested);
+    return {
+      signedMessage: signedMessage,
+      publicKey: address,
+    };
+  };
   const getFile = async () => {
-    await medusa.signForKeypair();
-    setEnableFile(true);
-    const respone = await fetch(document.fileUrl);
-    const newText = await respone.text();
-    setCipherText(newText);
-    await writeAsync?.();
-    console.log({ fileRequestId });
+    // await medusa.signForKeypair();
+    // setEnableFile(true);
+    // const respone = await fetch(document.fileUrl);
+    // const newText = await respone.text();
+    // setCipherText(newText);
+    // await writeAsync?.();
+    // console.log({ fileRequestId });
+    const fileCID = document.fileUrl.split('/')[4];
+    const { publicKey, signedMessage } = await encryptionSignature();
+    const fileType = 'image/jpeg';
+    const keyObject = await lighthouse.fetchEncryptionKey(
+      fileCID,
+      publicKey,
+      signedMessage
+    );
+    const decrypted = await lighthouse.decryptFile(fileCID, keyObject.data.key);
+    console.log(decrypted);
+    window.open(URL.createObjectURL(decrypted), '_blank');
   };
   return (
     <>
@@ -162,12 +176,7 @@ function Document({ document }: { document: Doc_User }) {
         </CardBody>
         <Center>
           <CardFooter>
-            <Button
-              colorScheme='teal'
-              variant='solid'
-              onClick={getFile}
-              isLoading={isLoading}
-            >
+            <Button colorScheme='teal' variant='solid' onClick={getFile}>
               Open File
             </Button>
           </CardFooter>
@@ -184,13 +193,11 @@ const emptyDoc = {
   Issued_By_Hospital: '',
 } as Doc_User;
 function UserRecords() {
+  const router = useRouter();
+  const [fileEvent, setFileEvent] = useState<ChangeEvent<HTMLInputElement>>();
+
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const onOpenModal = async () => {
-    if (!medusa) {
-      await signInToMedusa();
-    }
-    onOpen();
-  };
+
   const { data: signer } = useSigner();
   console.log({ signer });
   const OverlayOne = () => (
@@ -201,9 +208,13 @@ function UserRecords() {
   const [user, setUser] = useState<User>({} as User);
   const { tokenAddress } = useGetTokenAddress();
   const [blob, setBlob] = useState<Blob>();
-  const { medusa, signInToMedusa } = useMedusa();
+
   const { spinner, setSpinnerText, setSpinner } = useContext(SpinnerContext);
-  const { addDecryption, decryptions } = useContext(MedusaContext);
+  useEffect(() => {
+    if (!tokenAddress) {
+      router.push('/');
+    }
+  }, []);
   console.log({ tokenAddress });
   const { data } = useContractRead({
     address: tokenAddress as `0x${string}`,
@@ -219,13 +230,21 @@ function UserRecords() {
   }, [data]);
   const { errorToast, successToast } = useToastCustom();
   const [mintData, setMintData] = useState<MintParams>();
-  const [documentCar, setDocumentCar] = useState<DocumentCar>();
-  const provider = useProvider();
+  const encryptionSignature = async () => {
+    const address = await signer.getAddress();
+    const messageRequested = (await lighthouse.getAuthMessage(address)).data
+      .message;
+    const signedMessage = await signer.signMessage(messageRequested);
+    return {
+      signedMessage: signedMessage,
+      publicKey: address,
+    };
+  };
   const { config, refetch } = usePrepareContractWrite({
     address: tokenAddress as `0x${string}`,
     abi: TokenFactoryAbi,
     functionName: 'mint',
-    args: [mintData?.dataDescription, mintData?.dataUrl, mintData?.cipher],
+    args: [mintData?.dataDescription, mintData?.dataUrl],
     enabled: !!mintData,
     signer: signer,
     onSuccess() {},
@@ -237,12 +256,6 @@ function UserRecords() {
     reset,
     write,
   } = useContractWrite({ ...config, request: config.request });
-  const mintContract = useContract({
-    address: tokenAddress,
-    abi: TokenFactoryAbi,
-    signerOrProvider: signer,
-  });
-  console.log('mint function', { mintContract });
   console.log({ mintContractData });
   const nftStorageClient = new NFTStorage({
     token: process.env.NEXT_PUBLIC_NFT_STORAGE_API,
@@ -250,21 +263,15 @@ function UserRecords() {
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: mintContractData?.hash,
   });
-  const storeCar = async () => {
-    await nftStorageClient.storeCar(documentCar.fileCar);
-    await nftStorageClient.storeCar(documentCar.metadataCar);
-  };
 
-  useEffect(() => {
-    if (isSuccess) {
-      setSpinnerText('Uploading image to ipfs using Filecoin');
-      // storeCar().then(() => {
-
-      // });
-      setSpinner(false);
-      successToast('Document Uploaded !');
-    }
-  }, [isSuccess]);
+  // useEffect(() => {
+  //   if (isSuccess) {
+  //     setSpinnerText('Uploading image to ipfs using Filecoin');
+  //     setSpinner(false);
+  //     successToast('Document Uploaded !');
+  //     location.reload();
+  //   }
+  // }, [isSuccess]);
 
   useEffect(() => {
     if (isLoading) {
@@ -276,62 +283,72 @@ function UserRecords() {
       );
     }
     if (!isLoading && isSuccess) {
+      setSpinnerText('Uploading image to ipfs using Filecoin');
+
+      successToast('Document Uploaded !');
+      location.reload();
       setSpinner(false);
     }
   }, [isLoading]);
-
+  const {
+    isLoading: lighthouseLoading,
+    signedMessage,
+    signInLighthouse,
+    publicKey,
+  } = useLightHouse();
+  console.log({ signedMessage });
+  console.log({ publicKey });
+  const onOpenModal = async () => {
+    onOpen();
+  };
   const onDoucmentSubmit = async () => {
-    console.log('hiii');
-    if (tokenAddress) {
-      const { encryptedData, encryptedKey } = await medusa.encrypt(
-        new Uint8Array(await blob.arrayBuffer()),
-        tokenAddress as string
-      );
-      console.log({ encryptedKey });
-      const finalData = base64.encode(encryptedData);
+    setSpinner(true);
+    onClose();
+    setSpinnerText('Preparing File Upload...., Chill it takes time');
+    const { publicKey, signedMessage } = await encryptionSignature();
+    console.log('This is the signed message>>', signedMessage);
+    const fileMetaData = {
+      name: `${doc_user.title} `,
+      description: doc_user.title,
+      image: new File(['none'], doc_user.file.name, {
+        type: 'text/plain',
+      }),
+      properties: {
+        issuerName: user.fullName,
+        date: new Date().toISOString(),
+        date_issued: doc_user.Date_of_Issued,
+        doctor_issued_by: doc_user.Issued_By_Doctor,
+        hospital_issued_by: doc_user.Issued_By_Hospital,
+        tags: doc_user.Tag,
+      },
+    };
+    const metaDataStorageInfo = await nftStorageClient.store(fileMetaData);
+    const fileDescriptionUrl = getMetaDataUrl(metaDataStorageInfo.ipnft);
 
-      console.log({ finalData });
-      const fileMetaData = {
-        name: `${doc_user.file.name}  ${doc_user.title} `,
-        description: doc_user.title,
-        image: new File([finalData], doc_user.file.name, {
-          type: 'text/plain',
-        }),
-        properties: {
-          issuerName: user.fullName,
-          date: new Date().toISOString(),
-          date_issued: doc_user.Date_of_Issued,
-          doctor_issued_by: doc_user.Issued_By_Doctor,
-          hospital_issued_by: doc_user.Issued_By_Hospital,
-          tags: doc_user.Tag,
-        },
-      };
-      // console.log({ ipfsMetaData });
+    const response = await lighthouse.uploadEncrypted(
+      //@ts-ignore
+      fileEvent,
+      publicKey,
+      process.env.NEXT_PUBLIC_LIGHTHOUSE_API,
+      signedMessage
+    );
 
-      const cid = await nftStorageClient.storeBlob(
-        new Blob([finalData], { type: 'text/plain' })
-      );
-      const fileUrl = getFileUrl(cid.toString());
+    const fileUrl = getFileUrl(response.data.Hash);
+    // const { encryptedData, encryptedKey } = await medusa.encrypt(
+    //   new Uint8Array([]),
+    //   tokenAddress as string
+    // );
+    console.log({ fileUrl });
 
-      console.log({ fileUrl });
-      const metaDataStorageInfo = await nftStorageClient.store(fileMetaData);
-      // setDocumentCar({
-      //   metadataCar: metaDataStorageCar,
-      //   fileCar: blobCar,
-      // });
-      console.log({ metaDataStorageInfo });
-      const fileDescriptionUrl = getMetaDataUrl(metaDataStorageInfo.ipnft);
-      console.log({ fileDescriptionUrl });
+    setMintData({
+      dataUrl: fileUrl,
+      dataDescription: fileDescriptionUrl,
+    });
 
-      setMintData({
-        dataUrl: fileUrl,
-        dataDescription: fileDescriptionUrl,
-        cipher: encryptedKey,
-      });
-      write?.();
-      if (!write) {
-        alert("If it does'nt work ,click submit button again");
-      }
+    write?.();
+    if (!write) {
+      setSpinner(false);
+      alert('Transaction Failed please click submit button again');
     }
   };
   async function onFileHandle(
@@ -348,22 +365,18 @@ function UserRecords() {
       errorToast('Only Images and PDF allowed');
       return;
     }
+
     setBlob(await fileToBlob(selectedFile));
+    setFileEvent(event);
     setDoc_user({
       ...doc_user,
       file: selectedFile,
     });
   }
-  const { tokenIds, tokenData, docs } = useDocument();
+  const { tokenIds, tokenData, docs, loading: docLoading } = useDocument();
   console.log({ tokenIds });
   console.log({ tokenData });
   console.log({ docs });
-  // if (!writeAsync)
-  //   return (
-  //     <>
-  //       <Spinner />
-  //     </>
-  //   );
   if (!tokenAddress || tokenAddress == EMPTY_BYTES || tokenAddress == '') {
     return <Spinner size='xl' color='red' />;
   }
@@ -392,7 +405,9 @@ function UserRecords() {
               <Text as='h1' textAlign={'start'}>
                 Latest Document
               </Text>
-              {/* <Document document={emptyDoc} /> */}
+              {docs && docs[docs.length - 1] ? (
+                <Document document={docs[docs.length - 1]} />
+              ) : null}
             </VStack>
           </Stack>
           <Center>
@@ -532,15 +547,17 @@ function UserRecords() {
             // minW={'90%'}
             direction={{ base: 'column', md: 'row' }}
           >
-            <HStack spacing={1} direction={{ base: 'column', md: 'row' }}>
+            <Stack spacing={1} direction={{ base: 'column', md: 'row' }}>
               {/* <Document document={emptyDoc} /> */}
-              <Image
-                src={'./assets/images/chain-link-icon.svg'}
-                h={'120px'}
-                // w={'full'}
-              />
-            </HStack>
-            {medusa ? <Document document={docs[0]} /> : null}
+
+              {docs.map((doc) => {
+                if (doc) {
+                  return <Document document={doc} />;
+                } else {
+                  return <Spinner size={'xl'} color='blue' />;
+                }
+              })}
+            </Stack>
           </Stack>
         </Card>
       </Box>

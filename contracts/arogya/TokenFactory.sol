@@ -6,12 +6,10 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-
 // Here TokenFactory is an ERC721(NFT Based) smart contract which represents a collection of NFT tokens, this nft collection has an owner(user)
 // As of now each user can deploy only one contract in their name
 // Every instance of the contract TokenFcatory requires two special property i) baseURI ii) name of the user iii) Unique identifier of the nft collection (integer)
 // Only the owner who will be deploying this contract can mint tokens of this nft collection
-
 
 struct G1Point {
     uint256 x;
@@ -49,21 +47,24 @@ interface IEncryptionOracle {
     /// @notice submit a ciphertext that can be retrieved at the given link and
     /// has been created by this encryptor address. The ciphertext proof is checked
     /// and if correct, being signalled to Medusa.
-    function submitCiphertext(Ciphertext calldata _cipher, bytes calldata _link, address _encryptor)
-        external
-        returns (uint256);
+    function submitCiphertext(
+        Ciphertext calldata _cipher,
+        bytes calldata _link,
+        address _encryptor
+    ) external returns (uint256);
 
     /// @notice Request reencryption of a cipher text for a user
     /// @dev msg.sender must be The "owner" or submitter of the ciphertext or the oracle will not reply
     ///  _cipherId the id of the ciphertext to reencrypt
     ///  _publicKey the public key of the recipient
     /// @return the reencryption request id
-    function requestReencryption(uint256 _cipherId, G1Point calldata _publickey) external returns (uint256);
-
+    function requestReencryption(
+        uint256 _cipherId,
+        G1Point calldata _publickey
+    ) external returns (uint256);
 }
 
 error CallbackNotAuthorized();
-
 
 contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
     /**
@@ -73,11 +74,10 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
 
     /// @notice The Encryption Oracle Instance
     address public medusaOracleAddress = 0xb0dd3eB2374b21b6efAcf41A16e25Ed8114734E0;
-    IEncryptionOracle public oracle; 
-    
+    IEncryptionOracle public oracle;
+
     /// mapping recording the price of each token referenced by its cipher ID
     mapping(uint256 => uint256) itemToPrice;
-
 
     // Token Factory Characteristics
     bytes32 _baseTokenURI;
@@ -139,7 +139,7 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
         bytes32 ownerAbout,
         uint256 uid
     ) ERC721(getFinalString("Token Factory", uid), getFinalString("TF", uid)) {
-         oracle = IEncryptionOracle(medusaOracleAddress);
+        oracle = IEncryptionOracle(medusaOracleAddress);
 
         _baseTokenURI = baseURI;
         _collectionId = uid;
@@ -155,8 +155,7 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
         });
 
         transferOwnership(ownerAddress);
-
-}
+    }
 
     function getContractBalance() public view onlyOwner returns (uint256) {
         return address(this).balance;
@@ -166,61 +165,53 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
 
     // mapping(uint => BuyDeal[]) public buyDealsForTokenId; // buyDealsForTokenId[tokenId], contains all the BuyDeal Objects which have requested for tokenId
     mapping(uint => TokenDetail) public id_TokenDetailMapping; // Mapping of Id with Details
-    mapping(uint => mapping(address => bool) )  _allowedAddresesFor_ReEncryption;
+    mapping(uint => mapping(address => bool)) _allowedAddresesFor_ReEncryption;
 
     struct TokenDetail {
         address payable _addressOfOwner;
         uint256 _tokenId;
-
         string _dataDescription;
         string _dataUrl;
-        uint256 _cipherId;
-        
     }
 
     /**
      * @dev mint allows a user to mint 1 NFT token per transaction .
      */
 
-
     // Submit file -> returns cypherId
     function mint(
         string memory dataDescription,
-        string memory dataUrl,
-        Ciphertext calldata cipher
+        string memory dataUrl
     ) public payable onlyWhenNotPaused onlyOwner returns (uint256) {
-
         require(msg.sender == ownerDetails._ownerAddress);
         require(tokenIds < maxTokenIds, "Exceed maximum TokwnFactory supply");
 
         tokenIds += 1;
         _safeMint(msg.sender, tokenIds);
 
-        uint256 cipherId = oracle.submitCiphertext(cipher, bytes(dataUrl), msg.sender); // Medusa
+        // Medusa
 
-        TokenDetail memory _newTokenDetail = TokenDetail({ 
+        TokenDetail memory _newTokenDetail = TokenDetail({
             _addressOfOwner: ownerDetails._ownerAddress,
-             _tokenId: tokenIds,
-
+            _tokenId: tokenIds,
             _dataDescription: dataDescription,
-            _dataUrl: dataUrl,
-            _cipherId:cipherId
-
+            _dataUrl: dataUrl
         });
 
         id_TokenDetailMapping[tokenIds] = _newTokenDetail;
-        _allowedAddresesFor_ReEncryption[tokenIds][ownerDetails._ownerAddress] = true; 
+        _allowedAddresesFor_ReEncryption[tokenIds][ownerDetails._ownerAddress] = true;
 
-        return cipherId;
-        
+        return tokenIds;
     }
 
-
-    //Events 
-    event NewReencryptionRequest(address indexed buyer, address indexed seller, uint256 requestId, uint256 cipherId);
+    //Events
+    event NewReencryptionRequest(
+        address indexed buyer,
+        address indexed seller,
+        uint256 requestId,
+        uint256 cipherId
+    );
     event EntryIntoDecryptionProcess(uint256 indexed requestId, Ciphertext ciphertext);
-
-    
 
     //Modifiers
     modifier onlyOracle() {
@@ -230,7 +221,7 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
         _;
     }
 
-    /// oracleResult gets called when the Medusa network successfully reencrypted 
+    /// oracleResult gets called when the Medusa network successfully reencrypted
     /// the ciphertext to the given public key called in the previous method.
     /// This contract here simply emits an event so the client can listen on it and
     /// pick up on the cipher and locally decrypt.
@@ -239,21 +230,19 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
     }
 
     //Generate a reencryption request -> returns requestId
-    function buyTokenId(uint256 targetTokenId, G1Point calldata buyerPublicKey) external payable returns (uint256) {
-        require(targetTokenId > 0 && targetTokenId <= tokenIds);
-        require(_allowedAddresesFor_ReEncryption[targetTokenId][msg.sender] == true);
+    // function buyTokenId(uint256 targetTokenId) external payable returns (uint256) {
+    //     require(targetTokenId > 0 && targetTokenId <= tokenIds);
+    //     require(_allowedAddresesFor_ReEncryption[targetTokenId][msg.sender] == true);
 
-        uint256 cipherId = id_TokenDetailMapping[targetTokenId]._cipherId;
-        uint256 requestId = oracle.requestReencryption(cipherId, buyerPublicKey); // Medusa 
-        
-        emit NewReencryptionRequest(msg.sender, ownerDetails._ownerAddress, requestId, cipherId);
-        
-        ownerDetails._ownerAddress.transfer(msg.value); // Receive msg.value in smart contract address and pay msg.value to the owner 
-        
-        return requestId;
-    }
+    //     uint256 cipherId = id_TokenDetailMapping[targetTokenId]._cipherId;
+    //     uint256 requestId = oracle.requestReencryption(cipherId, buyerPublicKey); // Medusa
 
+    //     emit NewReencryptionRequest(msg.sender, ownerDetails._ownerAddress, requestId, cipherId);
 
+    //     ownerDetails._ownerAddress.transfer(msg.value); // Receive msg.value in smart contract address and pay msg.value to the owner
+
+    //     return requestId;
+    // }
 
     function getOwnerDetails() public view returns (ownerDetailsType memory) {
         return ownerDetails;
@@ -280,4 +269,3 @@ contract TokenFactory is IEncryptionClient, ERC721Enumerable, Ownable {
     // Fallback function is called when msg.data is not empty
     fallback() external payable {}
 }
-

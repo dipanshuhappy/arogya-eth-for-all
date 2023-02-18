@@ -10,6 +10,7 @@ import { useAccount, useContractRead } from 'wagmi';
 
 export default function () {
   const { address } = useAccount();
+  const [loading, setLoading] = useState(false);
   const { tokenAddress } = useContext(TokenAddressContext);
   const [tokenData, setTokenData] = useState<any[]>([]);
   const [docs, setDocs] = useState<Doc_User[]>([]);
@@ -21,10 +22,11 @@ export default function () {
     watch: true,
 
     async onSuccess(data) {
-      console.log({ tokenIds });
-      const tokenIdsNum = parseInt((tokenIds as BigNumber).toString());
+      setLoading(true);
+      console.log('token ids', { data });
+      const tokenIdsNum = parseInt((data as BigNumber).toString());
       const tokenInfos = [];
-      for (let tokenId = 0; tokenId < tokenIdsNum; tokenId++) {
+      for (let tokenId = 1; tokenId <= tokenIdsNum; tokenId++) {
         const value = await readContract({
           address: tokenAddress as `0x${string}`,
           abi: TokenFactoryAbi,
@@ -34,7 +36,7 @@ export default function () {
         tokenInfos.push(value);
       }
       if (tokenInfos.length != tokenData.length) {
-        setTokenData(tokenInfos);
+        setTokenData(tokenInfos.filter((v) => v != undefined));
       }
     },
   });
@@ -59,9 +61,12 @@ export default function () {
       let newDocs = [];
       tokenData.map((data) => {
         deserialiseDoc(data).then((doc) => {
-          newDocs.push(doc);
+          if (doc) {
+            newDocs.push(doc);
+          }
         });
       });
+      setLoading(false);
 
       setDocs(newDocs);
     }
@@ -76,5 +81,5 @@ export default function () {
   //   return newDocs;
   // }, [tokenData, tokenIds]);
 
-  return { tokenIds, tokenData, docs };
+  return { tokenIds, tokenData, docs, loading };
 }

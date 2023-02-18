@@ -27,7 +27,6 @@ export const deserialiseDoc = async (data: any): Promise<Doc_User> => {
 
   if (tokenDetailJson) {
     return {
-      cipher_id: parseInt(data[4]),
       title: tokenDetailJson['name'],
       name: tokenDetailJson['properties']['issuerName'],
       fileUrl: data[3],

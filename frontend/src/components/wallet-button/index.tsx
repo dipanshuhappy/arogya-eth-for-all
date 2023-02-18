@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { SlWallet } from 'react-icons/sl';
 import { EMPTY_BYTES } from 'src/data';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
-import useMedusa from 'src/hooks/useMedusa';
+
 import useToastCustom from 'src/hooks/useToastCustom';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
@@ -19,13 +19,11 @@ function WalletConnectMinimum() {
   //   args: [address],
   // });
   const { tokenAddress, refetch: reFetechTokenAddress } = useGetTokenAddress();
-  const { signOutMedusa, medusa } = useMedusa();
+
   const { disconnect } = useDisconnect({
     async onSuccess(context) {
       console.log({ context });
-      if (medusa) {
-        await signOutMedusa();
-      }
+
       successToast('Account Disconnected');
       if (router.pathname == '/profile') {
         router.push('/');

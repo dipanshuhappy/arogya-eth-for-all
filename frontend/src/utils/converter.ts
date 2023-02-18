@@ -8,7 +8,7 @@ export const safeIntToBigNumber = (int: number | null | undefined) =>
 export const fileToBlob = async (file: File) =>
   new Blob([new Uint8Array(await file.arrayBuffer())], { type: file.type });
 export const getFileUrl = (cid: string) =>
-  `https://${cid}.ipfs.nftstorage.link/`;
+  `https://gateway.lighthouse.storage/ipfs/${cid}`;
 export const getMetaDataUrl = (cid: string) =>
   `https://${cid}.ipfs.nftstorage.link/metadata.json`;
 export async function getMaxPriorityFeePerGas(provider) {
