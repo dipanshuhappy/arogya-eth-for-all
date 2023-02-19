@@ -54,9 +54,9 @@ const Header = () => {
       </HStack>
       <Show above='md'>
         <HStack spacing={12}>
-          <Link>Features</Link>
-          <Link>How it works</Link>
-          <Link>About Us</Link>
+          <Link href='#features'>Features</Link>
+          <Link href='./assets/images/How it works.jpeg' isExternal>How it works</Link>
+          <Link href='#about_us'>About Us</Link>
         </HStack>
       </Show>
       <Show below='md'>
@@ -76,9 +76,9 @@ const Header = () => {
           {isOpen ? (
             <Box pb={4} display={{ md: 'none' }}>
               <Stack as={'nav'} spacing={4}>
-                <Link>Features</Link>
-                <Link>How it works</Link>
-                <Link>About Us</Link>
+                <Link href='#features'>Features</Link>
+                <Link href='./assets/images/How it works.jpeg' isExternal>How it works</Link>
+                <Link href='#about_us'>About Us</Link>
               </Stack>
             </Box>
           ) : null}

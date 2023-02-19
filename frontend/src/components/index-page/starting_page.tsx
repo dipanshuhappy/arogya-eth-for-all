@@ -37,7 +37,7 @@ function StartingPage(props) {
       >
         <VStack spacing={1} align='start' w={{ base: '100%', md: '50%' }}>
           <Heading as='h1' textAlign='left'>
-            Medical Records stored in...
+            Medical Records stored using...
           </Heading>
         
           <Heading as='h2' width='100%' textAlign='left'>
