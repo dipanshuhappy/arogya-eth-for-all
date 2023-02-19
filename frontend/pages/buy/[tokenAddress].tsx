@@ -32,7 +32,7 @@ import {
 } from '@chakra-ui/react';
 import lighthouse from '@lighthouse-web3/sdk';
 
-import { readContract } from '@wagmi/core';
+import { readContract, readContracts } from '@wagmi/core';
 import { BigNumber } from 'ethers';
 
 import { useRouter } from 'next/router';
