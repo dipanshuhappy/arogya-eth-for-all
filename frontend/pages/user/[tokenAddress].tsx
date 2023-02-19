@@ -86,6 +86,20 @@ function Document({ document }: { document: Doc_User }) {
     aElement.click();
     URL.revokeObjectURL(href);
   };
+  const getFile = async () => {
+    const fileCID = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
+    const fileType = 'image/jpeg';
+    const keyObject = await lighthouse.fetchEncryptionKey(
+      fileCID,
+      publicKey,
+      signedMessage
+    );
+    const decrypted = await lighthouse.decryptFile(fileCID, keyObject.data.key);
+    console.log(decrypted);
+    window.open(URL.createObjectURL(decrypted), '_blank');
+  };
   return (
     <>
       <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
