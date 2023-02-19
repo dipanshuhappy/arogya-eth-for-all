@@ -9,6 +9,7 @@ import {
   Text,
   useColorModeValue as mode,
   VStack,
+  Link
 } from '@chakra-ui/react';
 import WalletConnect from '../wallet-button';
 function FeatureItemLeft() {
@@ -19,14 +20,16 @@ function FeatureItemLeft() {
       w='100%'
       bg={mode('white', '#2d3142')}
       borderBottom={'3px solid #000000'}
+      // id='features'
     >
-      <Box marginY={4} flex={'0.5'} height={'260px'}>
+      <Box marginY={4} flex={'0.5'} height={'260px'} >
         <Box
           borderRightRadius={'full'}
           width={'80%'}
           height='100%'
           // bg={'black'}
           borderColor={'blue'}
+          id='features'
         >
           <Image
             src='./assets/images/filecoin.jpg'
@@ -134,6 +137,7 @@ function FeaturesPage() {
         marginTop={'1'}
         padding={'10'}
         borderRadius={'20'}
+        id='about_us'
       >
         <Stack
           spacing={40}
