@@ -60,12 +60,14 @@ import { CarReader } from 'nft.storage/dist/src/lib/interface';
 import { BsPlusLg } from 'react-icons/bs';
 import { HiShare } from 'react-icons/hi';
 import { IoCopySharp } from 'react-icons/io5';
+import { MdOutlinePriceChange } from 'react-icons/md';
 import { EMPTY_BYTES } from 'src/data';
 import useDocument from 'src/hooks/useDocument';
 import useGetTokenAddress from 'src/hooks/useGetTokenAddress';
 import useLightHouse from 'src/hooks/useLightHouse';
 import useToastCustom from 'src/hooks/useToastCustom';
 import useWriteIsPublic from 'src/hooks/useWriteIsPublic';
+import useWritePrice from 'src/hooks/useWritePrice';
 import {
   useContractRead,
   useContractWrite,
@@ -101,6 +103,7 @@ function Document({ document }: { document: Doc_User }) {
       console.log('Token access detail data', { accessDetailData });
       const tokenDetailWithoutAddresses =
         deserialiseTokenAccessDetail(accessDetailData);
+      setPrice(tokenDetailWithoutAddresses.price);
       setTokenAccessDetail({
         allowedAddresses: [],
         is_public: tokenDetailWithoutAddresses.is_public,
@@ -124,6 +127,11 @@ function Document({ document }: { document: Doc_User }) {
     window.open(URL.createObjectURL(decrypted), '_blank');
   };
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isPriceModalOpen,
+    onOpen: onPriceModalOpen,
+    onClose: onPriceClose,
+  } = useDisclosure();
   const [loading, setLoading] = useState(false);
   const [newAddress, setNewAddress] = useState('');
   const [refetchAddress, setRetchAddress] = useState(false);
@@ -149,7 +157,29 @@ function Document({ document }: { document: Doc_User }) {
     isSuccess: isPublicWriteSuccess,
     write: isPublicWrite,
   } = useWriteIsPublic(document.id);
+  const {
+    isLoading: priceWriteLoading,
+    changePrice,
+    isSuccess: priceWriteSuccess,
+    write: writePrice,
+  } = useWritePrice(document.id);
   const { setSpinner, spinner, setSpinnerText } = useContext(SpinnerContext);
+  const [price, setPrice] = useState(0);
+  useEffect(() => {
+    if (priceWriteLoading) {
+      if (!spinner) {
+        setSpinner(true);
+      }
+      setSpinnerText(
+        'Waiting for Transaction Confirmation,Chill  it takes some time '
+      );
+    }
+    if (!priceWriteLoading && priceWriteSuccess) {
+      setSpinnerText('Done  ');
+      successToast('Done Price has been set ');
+      setSpinner(false);
+    }
+  }, [priceWriteLoading]);
   useEffect(() => {
     if (isPublicWriteLoading) {
       if (!spinner) {
@@ -170,13 +200,6 @@ function Document({ document }: { document: Doc_User }) {
     onOpen();
     setLoading(true);
     const cid = getCidFromFileUrl(document.fileUrl);
-
-    // const tokenAddressesData = await readContract({
-    //   address: tokenAddress as `0x${string}`,
-    //   abi: TokenFactoryAbi,
-    //   functionName: 'getAllowedAddress',
-    //   args: [safeIntToBigNumber(document.id)],
-    // });
     const addressesResponse = await lighthouse.getAccessConditions(cid);
     console.log({ addressesResponse });
     setTokenAccessDetail({
@@ -249,17 +272,45 @@ function Document({ document }: { document: Doc_User }) {
     aElement.click();
     URL.revokeObjectURL(href);
   };
+
   const onClipBoardClick = () => {
     setValue(getViewUrlFromCid(getCidFromFileUrl(document.fileUrl)));
     onCopy();
     onCopy();
+  };
+
+  const onOpenWrite = () => {
+    onPriceModalOpen();
+  };
+
+  const confirmPrice = () => {
+    setSpinner(true);
+    changePrice(price);
+    onPriceClose();
+    if (!writePrice) {
+      setSpinner(false);
+      alert('An error happen , click confirm button again ');
+    }
+    writePrice?.();
   };
   return (
     <>
       <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
         <CardHeader>
           <HStack width={'100%'} justifyContent='space-between'>
-            <Heading textAlign={'start'}>{document?.title}</Heading>
+            <HStack>
+              <IconButton
+                aria-label='share button'
+                colorScheme={'orange'}
+                color='red.700'
+                icon={<MdOutlinePriceChange />}
+                onClick={onOpenWrite}
+                size='sm'
+                borderRadius='md'
+              />
+              <Heading textAlign={'start'}>{document?.title}</Heading>
+            </HStack>
+
             <VStack spacing={4} position='absolute' right={'3%'} top='3%'>
               <IconButton
                 aria-label='share button'
@@ -313,9 +364,15 @@ function Document({ document }: { document: Doc_User }) {
                     ? 'This file is Public '
                     : 'This file is Private'}
                 </Text>
-                <Text textAlign={'center'} fontSize='medium' width='100%'>
+                <Text
+                  textAlign={'center'}
+                  fontSize='medium'
+                  width='100%'
+                  fontWeight={'black'}
+                  color='black'
+                >
                   {tokenAccessDetail?.price !== 0
-                    ? `This file is set at price ${tokenAccessDetail.price} `
+                    ? `This file is set at price ${tokenAccessDetail.price} tFIL`
                     : null}
                 </Text>
               </>
@@ -407,8 +464,37 @@ function Document({ document }: { document: Doc_User }) {
           </ModalBody>
           <ModalFooter>
             <HStack spacing={8}>
-              <Button colorScheme={'green'}>Confirm</Button>
               <Button colorScheme={'red'} onClick={onClose}>
+                Close
+              </Button>
+            </HStack>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal onClose={onPriceClose} isOpen={isPriceModalOpen}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Set your Price in FIL</ModalHeader>
+          <ModalBody>
+            <>
+              <HStack>
+                <Input
+                  placeholder='Enter price here'
+                  value={price}
+                  type='number'
+                  onChange={(e) => {
+                    setPrice(parseInt(e.target.value));
+                  }}
+                />
+              </HStack>
+            </>
+          </ModalBody>
+          <ModalFooter>
+            <HStack spacing={8}>
+              <Button colorScheme={'green'} onClick={confirmPrice}>
+                Confirm
+              </Button>
+              <Button colorScheme={'red'} onClick={onPriceClose}>
                 Close
               </Button>
             </HStack>
@@ -627,6 +713,13 @@ function UserRecords() {
   console.log({ tokenIds });
   console.log({ tokenData });
   console.log({ docs });
+  const { onCopy, setValue } = useClipboard('');
+  const copyProfileLink = () => {
+    setValue(`${window.location.origin}/user/${tokenAddress}`);
+    onCopy();
+    onCopy();
+    successToast('Profile Link Copied');
+  };
   if (!tokenAddress || tokenAddress == EMPTY_BYTES || tokenAddress == '') {
     return (
       <Center width={'100%'} height='100%'>
@@ -792,7 +885,17 @@ function UserRecords() {
             </ModalContent>
           </Modal>
         </Card>
-
+        <Center width={'100%'}>
+          <Button
+            colorScheme={'whatsapp'}
+            boxShadow={'dark-lg'}
+            marginBottom={'15'}
+            size='md'
+            onClick={copyProfileLink}
+          >
+            Copy Profile Link
+          </Button>
+        </Center>
         <Heading as='u'>Previous Documents:</Heading>
         <br />
         <Card color={'white'} w={'1000px'} marginTop={'10'}>
