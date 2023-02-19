@@ -179,7 +179,7 @@ function FeaturesPage() {
                 </Heading>
                 <Text color={'gray.500'}>Blockchain Developer</Text>
               </Stack>
-
+              <Link href='https://www.linkedin.com/in/dipanshu-happy/' isExternal>
               <Button
                 w={'full'}
                 mt={8}
@@ -193,6 +193,7 @@ function FeaturesPage() {
               >
                 Know more {'>>'}
               </Button>
+              </Link>
             </Box>
           </Box>
           <Box
@@ -229,6 +230,7 @@ function FeaturesPage() {
                 <Text color={'gray.500'}>Blockchain Developer</Text>
               </Stack>
 
+              <Link href='https://www.linkedin.com/in/nithin-mengani-0a740a222/'>
               <Button
                 w={'full'}
                 mt={8}
@@ -242,6 +244,7 @@ function FeaturesPage() {
               >
                 Know more {'>>'}
               </Button>
+              </Link> 
             </Box>
           </Box>
           <Box
@@ -273,11 +276,11 @@ function FeaturesPage() {
             <Box p={10} m={1}>
               <Stack spacing={2} align={'center'} mb={5}>
                 <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-                  Sudeep XYZ
+                  Sudeep Paul
                 </Heading>
                 <Text color={'gray.500'}>Blockchain Developer</Text>
               </Stack>
-
+              <Link href='https://www.linkedin.com/in/sudeep-paul-a04372201/'>
               <Button
                 w={'full'}
                 mt={8}
@@ -291,6 +294,7 @@ function FeaturesPage() {
               >
                 Know more {'>>'}
               </Button>
+              </Link>
             </Box>
           </Box>
         </Stack>
