@@ -219,7 +219,7 @@ function index() {
               />
             </FormControl>
             <FormControl id='about'>
-              <FormLabel>Recent Medical Document</FormLabel>
+              <FormLabel>About me </FormLabel>
               <Textarea
                 placeholder=' About Your self'
                 size='sm'
