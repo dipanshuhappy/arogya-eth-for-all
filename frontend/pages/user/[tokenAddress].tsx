@@ -1,23 +1,47 @@
 import PageLayout from '@/components/page-layout';
 import UserProfile from '@/components/User_Record-Page/UserProfile';
-import { Doc_User, User } from '@/types/user';
-import { safeIntToBigNumber } from '@/utils/converter';
-import { deserialiseTokenAccessDetail, deserialiseUser } from '@/utils/deserialise';
+import { Doc_User, TokenAccessDetail, User } from '@/types/user';
+import {
+  getCidFromFileUrl,
+  getViewUrlFromCid,
+  safeIntToBigNumber,
+} from '@/utils/converter';
+import {
+  deserialiseTokenAccessDetail,
+  deserialiseUser,
+} from '@/utils/deserialise';
+import { encryptionSignatureForLighthouse } from '@/utils/fetcher';
 import { DownloadIcon } from '@chakra-ui/icons';
-import { Box, Button, Card, CardBody, CardFooter, CardHeader, Center, Heading, HStack, IconButton, Stack, Text, VStack } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Center,
+  Heading,
+  HStack,
+  IconButton,
+  Stack,
+  Text,
+  useClipboard,
+  VStack,
+} from '@chakra-ui/react';
+import lighthouse from '@lighthouse-web3/sdk';
 
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { HiShare } from 'react-icons/hi';
 import { IoCopySharp } from 'react-icons/io5';
 import { TokenFactoryAbi } from 'src/abi';
 import { useContractRead } from 'wagmi';
 
 function Document({ document }: { document: Doc_User }) {
+  const { hasCopied, onCopy, setValue, value } = useClipboard('');
   const router = useRouter();
   const [tokenAccessDetail, setTokenAccessDetail] =
     useState<TokenAccessDetail>();
-  const {tokenAddress} = router.query;
+  const { tokenAddress } = router.query;
   const { data: accessDetailData } = useContractRead({
     address: tokenAddress as `0x${string}`,
     abi: TokenFactoryAbi,
@@ -42,6 +66,40 @@ function Document({ document }: { document: Doc_User }) {
     onCopy();
     onCopy();
   };
+  const onDownload = async () => {
+    const fileCID = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
+    const fileType = 'image/jpeg';
+    const keyObject = await lighthouse.fetchEncryptionKey(
+      fileCID,
+      publicKey,
+      signedMessage
+    );
+    const decrypted = await lighthouse.decryptFile(fileCID, keyObject.data.key);
+
+    const aElement = window.document.createElement('a');
+    aElement.setAttribute('download', `${document.title}.PNG`);
+    const href = URL.createObjectURL(decrypted);
+    aElement.href = href;
+    aElement.setAttribute('target', '_blank');
+    aElement.click();
+    URL.revokeObjectURL(href);
+  };
+  const getFile = async () => {
+    const fileCID = getCidFromFileUrl(document.fileUrl);
+    const { publicKey, signedMessage } =
+      await encryptionSignatureForLighthouse();
+    const fileType = 'image/jpeg';
+    const keyObject = await lighthouse.fetchEncryptionKey(
+      fileCID,
+      publicKey,
+      signedMessage
+    );
+    const decrypted = await lighthouse.decryptFile(fileCID, keyObject.data.key);
+    console.log(decrypted);
+    window.open(URL.createObjectURL(decrypted), '_blank');
+  };
   return (
     <>
       <Card bgColor={'#EBECF0'} color={'black'} padding={30}>
@@ -49,7 +107,6 @@ function Document({ document }: { document: Doc_User }) {
           <HStack width={'100%'} justifyContent='space-between'>
             <Heading textAlign={'start'}>{document?.title}</Heading>
             <VStack spacing={4} position='absolute' right={'3%'} top='3%'>
-              
               <IconButton
                 aria-label='downlaod button'
                 colorScheme={'c'}
@@ -89,9 +146,7 @@ function Document({ document }: { document: Doc_User }) {
                   fontSize='large'
                   width='100%'
                 >
-                  
-                    'This file is Public '
-                   
+                  'This file is Public '
                 </Text>
                 {/* <Text textAlign={'center'} fontSize='medium' width='100%'>
                   {tokenAccessDetail?.price !== 0
@@ -110,17 +165,20 @@ function Document({ document }: { document: Doc_User }) {
           </CardFooter>
         </Center>
       </Card>
+    </>
+  );
 }
 
 const User = () => {
   const router = useRouter();
+  const [user, setUser] = useState<User>({} as User);
   const { tokenAddress } = router.query;
   const { data } = useContractRead({
     address: tokenAddress as `0x${string}`,
     abi: TokenFactoryAbi,
     functionName: 'getOwnerDetails',
   });
-  const [user, setUser] = useState<User>({} as User);
+
   useEffect(() => {
     if (data) {
       setUser(deserialiseUser(data));
