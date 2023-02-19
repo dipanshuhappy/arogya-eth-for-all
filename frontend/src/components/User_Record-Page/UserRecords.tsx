@@ -592,23 +592,6 @@ function UserRecords() {
   //   }
   // }, [isSuccess]);
 
-  useEffect(() => {
-    if (isLoading) {
-      if (!spinner) {
-        setSpinner(true);
-      }
-      setSpinnerText(
-        'Waiting for Transaction Confirmation,Chill  it takes some time '
-      );
-    }
-    if (!isLoading && isSuccess) {
-      setSpinnerText('Uploading image to ipfs using Filecoin');
-
-      successToast('Document Uploaded !');
-      location.reload();
-      setSpinner(false);
-    }
-  }, [isLoading]);
   const {
     isLoading: lighthouseLoading,
     signedMessage,
