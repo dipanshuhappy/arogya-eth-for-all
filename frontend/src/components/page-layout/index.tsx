@@ -52,7 +52,7 @@ const PageLayout = ({ title, description, children }: PageProps) => {
               url: '',
               width: 1200,
               height: 630,
-              alt: 'Dipanshu, Nithin Mengani, Sudheep',
+              alt: 'Dipanshu Singh, Nithin Mengani, Sudheep Paul',
               type: '',
             },
           ],
