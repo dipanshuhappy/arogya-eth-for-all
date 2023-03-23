@@ -36,24 +36,24 @@ const PageLayout = ({ title, description, children }: PageProps) => {
   return (
     <>
       <NextSeo
-        title={title + ' | Starter Kit'}
+        title={title + ' | Arogya - A Medical Record Storage and Data DAO'}
         description={description}
         twitter={{
           cardType: 'summary_large_image',
-          handle: '@hakkaofdev',
+          handle: '',
         }}
         openGraph={{
-          url: 'https://www.hakkaofdev.fr',
-          title: title + ' | Starter Kit',
+          url: 'https://arogya-eth-for-all.vercel.app/',
+          title: title + ' | Arogya - A Medical Record Storage and Data DAO',
           description: description,
           locale: 'en_US',
           images: [
             {
-              url: 'https://www.hakkaofdev.fr/assets/images/social.png',
+              url: '',
               width: 1200,
               height: 630,
-              alt: 'Alexandre Gossard',
-              type: 'image/png',
+              alt: 'Dipanshu, Nithin Mengani, Sudheep',
+              type: '',
             },
           ],
         }}
