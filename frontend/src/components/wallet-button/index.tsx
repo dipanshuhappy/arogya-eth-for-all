@@ -31,7 +31,7 @@ function WalletConnectMinimum() {
     },
   });
   const { connect, isSuccess, connectAsync } = useConnect({
-    // chainId: 3141,
+    chainId: 3141,
     connector: new InjectedConnector(),
 
     async onSuccess() {
@@ -46,14 +46,14 @@ function WalletConnectMinimum() {
       return isConnected && tokenAddress !== EMPTY_BYTES
         ? 'Disconnect '
         : isConnected
-          ? 'Go to Sign Up'
-          : 'Connect';
+        ? 'Go to Sign Up'
+        : 'Connect';
     } else {
       return isConnected && tokenAddress !== EMPTY_BYTES
         ? 'Open Profile '
         : isConnected
-          ? 'Go to Sign Up'
-          : 'Connect';
+        ? 'Go to Sign Up'
+        : 'Connect';
     }
   };
   return (

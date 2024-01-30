@@ -33,7 +33,6 @@ function index() {
   const userDebounce = useDebounce(user, 600);
 
   const { tokenAddress } = useGetTokenAddress();
-  console.log({ tokenAddress }, "add")
   const [enable, setEnable] = useState(false);
   const { setTokenAddress } = useContext(TokenAddressContext);
   const enableDebounce = useDebounce(enable, 600);
@@ -97,7 +96,7 @@ function index() {
     if (isSuccess) {
       refetchTokenAddress().then((value) => {
         setSpinner(false);
-        console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
+
         router.push('/profile');
       });
     }

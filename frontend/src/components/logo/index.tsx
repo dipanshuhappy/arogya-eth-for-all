@@ -21,7 +21,7 @@ export default function ({ width, height }: LogoProps) {
           ? '/assets/images/logo.svg'
           : '/assets/images/logo-white.svg'
       }
-      alt='Atop Health Vault'
+      alt='Arogya Logo'
       width={width}
       height={height}
     />

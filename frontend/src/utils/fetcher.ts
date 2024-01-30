@@ -1,26 +1,25 @@
 import lighthouse from '@lighthouse-web3/sdk';
 import { fetchSigner } from '@wagmi/core';
-import { polygonMumbai } from 'wagmi/chains';
 
 export const getAccessControlConditions = (
   address: string,
   tokenId: number
 ) => [
-    {
-      id: polygonMumbai.id,
-      chain: 'Mumbai',
-      method: 'isUserValid',
-      standardContractType: 'Custom',
-      contractAddress: address,
-      returnValueTest: {
-        comparator: '==',
-        value: 'true',
-      },
-      parameters: [tokenId, ':userAddress'],
-      inputArrayType: ['uint256', 'address'],
-      outputType: 'bool',
+  {
+    id: 3141,
+    chain: 'Hyperspace',
+    method: 'isUserValid',
+    standardContractType: 'Custom',
+    contractAddress: address,
+    returnValueTest: {
+      comparator: '==',
+      value: 'true',
     },
-  ];
+    parameters: [tokenId, ':userAddress'],
+    inputArrayType: ['uint256', 'address'],
+    outputType: 'bool',
+  },
+];
 export const encryptionSignatureForLighthouse = async () => {
   const signer = await fetchSigner();
   const address = await signer.getAddress();

@@ -20,7 +20,7 @@ function FeatureItemLeft() {
       w='100%'
       bg={mode('white', '#2d3142')}
       borderBottom={'3px solid #000000'}
-    // id='features'
+      // id='features'
     >
       <Box marginY={4} flex={'0.5'} height={'260px'} >
         <Box
@@ -33,12 +33,12 @@ function FeatureItemLeft() {
         >
           <Image
             src='./assets/images/filecoin.jpg'
-            flexDirection={{ base: 'column', md: 'row' }}
+            flexDirection={{base:'column', md:'row'}}
             width={'100%'}
             height={260}
             borderRightRadius={'full'}
-
-          >
+            
+            >
 
           </Image>
         </Box>
@@ -56,10 +56,10 @@ function FeatureItemLeft() {
             How Filecoin Helped Us
           </Text>
           <Text justifyContent={'left'} fontSize={'medium'} textOverflow='clip'>
-            Filecoin offers strong encryption and data protection mechanisms,
-            ensuring that medical records remain private and tamper-proof.
-            This is especially important for medical records, which contain
-            sensitive information that needs to be kept confidential.
+          Filecoin offers strong encryption and data protection mechanisms, 
+          ensuring that medical records remain private and tamper-proof. 
+          This is especially important for medical records, which contain 
+          sensitive information that needs to be kept confidential.
           </Text>
           <WalletConnect />
         </VStack>
@@ -86,12 +86,12 @@ function FeatureItemRight() {
         >
           <Image
             src='./assets/images/arogya.png'
-            flexDirection={{ base: 'column', md: 'row' }}
+            flexDirection={{base:'column', md:'row'}}
             width={'100%'}
             height={260}
             borderLeftRadius={'full'}
-
-          >
+            
+            >
 
           </Image>
         </Box>
@@ -106,11 +106,11 @@ function FeatureItemRight() {
           marginY={'8'}
         >
           <Text fontWeight={'bold'} fontSize={'2xl'} textAlign={'left'}>
-            Unique Features of Atop Health Vault
+            Unique Features of Arogya
           </Text>
           <Text justifyContent={'left'} fontSize={'medium'} textOverflow='clip'>
             Giving Access to others is on User Hand.
-            Users can sell their records in Atop Health Vault MarketPlace.
+            Users can sell their records in Arogya MarketPlace.
             Anyone can buy the records by paying amount which set by user.
 
           </Text>
@@ -164,7 +164,7 @@ function FeaturesPage() {
             <Flex justify={'center'} mt={-12}>
               <Avatar
                 size={'xl'}
-                src={'/assets/images/blockchain.jpeg'}
+                src={'/assets/images/dipanshu.png'}
                 // alt={'Author'}
                 css={{
                   border: '2px solid white',
@@ -175,24 +175,24 @@ function FeaturesPage() {
             <Box p={10} m={1}>
               <Stack spacing={2} align={'center'} mb={5}>
                 <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-                  Uday Kiran
+                  Dipanshu Singh
                 </Heading>
                 <Text color={'gray.500'}>Blockchain Developer</Text>
               </Stack>
-              <Link href='' isExternal>
-                <Button
-                  w={'full'}
-                  mt={8}
-                  bg={mode('#151f21', 'gray.900')}
-                  color={'white'}
-                  rounded={'md'}
-                  _hover={{
-                    transform: 'translateY(-2px)',
-                    boxShadow: 'lg',
-                  }}
-                >
-                  Know more {'>>'}
-                </Button>
+              <Link href='https://www.linkedin.com/in/dipanshu-happy/' isExternal>
+              <Button
+                w={'full'}
+                mt={8}
+                bg={mode('#151f21', 'gray.900')}
+                color={'white'}
+                rounded={'md'}
+                _hover={{
+                  transform: 'translateY(-2px)',
+                  boxShadow: 'lg',
+                }}
+              >
+                Know more {'>>'}
+              </Button>
               </Link>
             </Box>
           </Box>
@@ -214,7 +214,7 @@ function FeaturesPage() {
             <Flex justify={'center'} mt={-12}>
               <Avatar
                 size={'xl'}
-                src={'/assets/images/fullstack.jpeg'}
+                src={'/assets/images/nithin.png'}
                 // alt={'Author'}
                 css={{
                   border: '2px solid white',
@@ -225,26 +225,26 @@ function FeaturesPage() {
             <Box p={10} m={1}>
               <Stack spacing={2} align={'center'} mb={5}>
                 <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-                  Ramana Kumar
+                  Nithin Mengani
                 </Heading>
-                <Text color={'gray.500'}>Full stack Developer</Text>
+                <Text color={'gray.500'}>Blockchain Developer</Text>
               </Stack>
 
-              <Link href=''>
-                <Button
-                  w={'full'}
-                  mt={8}
-                  bg={mode('#151f21', 'gray.900')}
-                  color={'white'}
-                  rounded={'md'}
-                  _hover={{
-                    transform: 'translateY(-2px)',
-                    boxShadow: 'lg',
-                  }}
-                >
-                  Know more {'>>'}
-                </Button>
-              </Link>
+              <Link href='https://www.linkedin.com/in/nithin-mengani-0a740a222/'>
+              <Button
+                w={'full'}
+                mt={8}
+                bg={mode('#151f21', 'gray.900')}
+                color={'white'}
+                rounded={'md'}
+                _hover={{
+                  transform: 'translateY(-2px)',
+                  boxShadow: 'lg',
+                }}
+              >
+                Know more {'>>'}
+              </Button>
+              </Link> 
             </Box>
           </Box>
           <Box
@@ -265,7 +265,7 @@ function FeaturesPage() {
             <Flex justify={'center'} mt={-12}>
               <Avatar
                 size={'xl'}
-                src={'/assets/images/fullstack1.jpeg'}
+                src={'/assets/images/sudeep.jpeg'}
                 // alt={'Author'}
                 css={{
                   border: '2px solid white',
@@ -276,24 +276,24 @@ function FeaturesPage() {
             <Box p={10} m={1}>
               <Stack spacing={2} align={'center'} mb={5}>
                 <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-                  Nitish
+                  Sudeep Paul
                 </Heading>
-                <Text color={'gray.500'}>Full stack Developer</Text>
+                <Text color={'gray.500'}>Blockchain Developer</Text>
               </Stack>
-              <Link href='/'>
-                <Button
-                  w={'full'}
-                  mt={8}
-                  bg={mode('#151f21', 'gray.900')}
-                  color={'white'}
-                  rounded={'md'}
-                  _hover={{
-                    transform: 'translateY(-2px)',
-                    boxShadow: 'lg',
-                  }}
-                >
-                  Know more {'>>'}
-                </Button>
+              <Link href='https://www.linkedin.com/in/sudeep-paul-a04372201/'>
+              <Button
+                w={'full'}
+                mt={8}
+                bg={mode('#151f21', 'gray.900')}
+                color={'white'}
+                rounded={'md'}
+                _hover={{
+                  transform: 'translateY(-2px)',
+                  boxShadow: 'lg',
+                }}
+              >
+                Know more {'>>'}
+              </Button>
               </Link>
             </Box>
           </Box>
