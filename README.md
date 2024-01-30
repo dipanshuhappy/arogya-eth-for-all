@@ -1,4 +1,4 @@
-# Arogya - Decentralized Medical Records Storage + Data DAO
+# Atop Health Vault - Decentralized Medical Records Storage + Data DAO
 
 Users can store their Medical Records with user Ownership.
 By Default the files are private if users want they can make it as public.
@@ -45,16 +45,16 @@ TOKENFACTORYCONTRACT = '0xD4F35bb5DB18F03146aff7Fc0a0E3b438FA3492d';
 
 Requirements:
  - Metamask Wallet.
- - Hyperspace Testnet Account with some Balance.
+ - Polygon Testnet Account with some Balance.
 
 ```
-Link to the App: https://arogya-eth-for-all.vercel.app/
+
 ```
 
 Copy and paste the url in preferred browser.
 
 Now, you will get land in our landing page.....
-Click on Connect Button and connect with Hyperspace Testnet.
+Click on Connect Button and connect with Polygon Testnet.
 
 ![image](https://user-images.githubusercontent.com/110032619/219965517-f5ea938e-83ec-41f9-87ca-883c6240e739.png)
 

@@ -6,7 +6,7 @@ import { useAccount, useSigner } from 'wagmi';
 
 export default function () {
   const { medusa, updateMedusa, decryptions } = useContext(MedusaContext);
-  const { data: signer } = useSigner({ chainId: 3141 });
+  const { data: signer } = useSigner({});
   const { address } = useAccount();
   const signInToMedusa = async () => {
     if (!signer) return;
