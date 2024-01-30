@@ -36,15 +36,15 @@ const PageLayout = ({ title, description, children }: PageProps) => {
   return (
     <>
       <NextSeo
-        title={title + ' | Arogya - A Medical Record Storage and Data DAO'}
+        title={title + ' | Atop Health Vault - A Medical Record Storage and Data DAO'}
         description={description}
         twitter={{
           cardType: 'summary_large_image',
           handle: '',
         }}
         openGraph={{
-          url: 'https://arogya-eth-for-all.vercel.app/',
-          title: title + ' | Arogya - A Medical Record Storage and Data DAO',
+          url: '',
+          title: title + ' | Atop Health Vault - A Medical Record Storage and Data DAO',
           description: description,
           locale: 'en_US',
           images: [
@@ -52,7 +52,7 @@ const PageLayout = ({ title, description, children }: PageProps) => {
               url: '',
               width: 1200,
               height: 630,
-              alt: 'Dipanshu Singh, Nithin Mengani, Sudheep Paul',
+              alt: '',
               type: '',
             },
           ],

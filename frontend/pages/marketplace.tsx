@@ -46,14 +46,14 @@ function index() {
     abi: ParentStorageAbi,
     functionName: 'getAddresses',
     args: [],
-    chainId: 3141,
+    // chainId: 3141,
   }).then((values) => {
     const _values = values as string[];
     console.log({ values });
     const ownerDetailsContract = {
       abi: TokenFactoryAbi,
       functionName: 'getOwnerDetails',
-      chainId: 3141,
+      // chainId: 3141,
     };
     const usersDataContracts = _values.map((value) => ({
       ...ownerDetailsContract,
@@ -90,7 +90,7 @@ function index() {
           <InputLeftElement
             // pointerEvents='none'
             color='gray.300'
-            // fontSize='7xl'
+          // fontSize='7xl'
           />
           <Input
             type='search'

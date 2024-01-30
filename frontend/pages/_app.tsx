@@ -10,34 +10,34 @@ import '@fontsource/josefin-sans/700.css';
 import { AppProps } from 'next/app';
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
-
+import { polygonMumbai } from "wagmi/chains"
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
 
-const hyperspaceChain = {
-  id: 3141,
-  name: 'Filecoin - Hyperspace testnet',
-  network: 'Filecoin Hyperspace testnet',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Testnet Filecoin',
-    symbol: 'tFil',
-  },
-  rpcUrls: {
-    public: { http: ['https://api.hyperspace.node.glif.io/rpc/v1'] },
-    default: { http: ['https://api.hyperspace.node.glif.io/rpc/v1'] },
-  },
-  blockExplorers: {
-    public: { name: 'Glif', url: 'https://explorer.glif.io/' },
-    default: { name: 'Glif', url: 'https://explorer.glif.io/' },
-  },
-};
+// const hyperspaceChain = {
+//   id: 3141,
+//   name: 'Filecoin - Hyperspace testnet',
+//   network: 'Filecoin Hyperspace testnet',
+//   nativeCurrency: {
+//     decimals: 18,
+//     name: 'Testnet Filecoin',
+//     symbol: 'tFil',
+//   },
+//   rpcUrls: {
+//     public: { http: ['https://api.hyperspace.node.glif.io/rpc/v1'] },
+//     default: { http: ['https://api.hyperspace.node.glif.io/rpc/v1'] },
+//   },
+//   blockExplorers: {
+//     public: { name: 'Glif', url: 'https://explorer.glif.io/' },
+//     default: { name: 'Glif', url: 'https://explorer.glif.io/' },
+//   },
+// };
 const { chains, provider, webSocketProvider } = configureChains(
-  [hyperspaceChain],
+  [polygonMumbai],
   [
     jsonRpcProvider({
       rpc: (chain) => {
         console.log({ chain });
-        return { http: chain.rpcUrls.default.http[0] };
+        return { http: "https://polygon-mumbai.g.alchemy.com/v2/XcG0U49rmR40kygsOE2Z2MrqtZxXYjGS" };
       },
     }),
   ]
