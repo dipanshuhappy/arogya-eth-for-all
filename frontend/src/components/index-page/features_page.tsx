@@ -175,7 +175,7 @@ function FeaturesPage() {
             <Box p={10} m={1}>
               <Stack spacing={2} align={'center'} mb={5}>
                 <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-                  Uday Kiran
+                  Sarthak Jain
                 </Heading>
                 <Text color={'gray.500'}>Blockchain Developer</Text>
               </Stack>
