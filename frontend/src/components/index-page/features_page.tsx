@@ -225,7 +225,7 @@ function FeaturesPage() {
             <Box p={10} m={1}>
               <Stack spacing={2} align={'center'} mb={5}>
                 <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-                  Ramana Kumar
+                  Ayush Singh
                 </Heading>
                 <Text color={'gray.500'}>Full stack Developer</Text>
               </Stack>
