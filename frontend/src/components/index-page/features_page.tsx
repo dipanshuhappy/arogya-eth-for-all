@@ -214,7 +214,7 @@ function FeaturesPage() {
             <Flex justify={'center'} mt={-12}>
               <Avatar
                 size={'xl'}
-                src={'/assets/images/fullstack.jpeg'}
+                src={'/assets/images/fullstack.jpgs'}
                 // alt={'Author'}
                 css={{
                   border: '2px solid white',
@@ -225,7 +225,7 @@ function FeaturesPage() {
             <Box p={10} m={1}>
               <Stack spacing={2} align={'center'} mb={5}>
                 <Heading fontSize={'3xl'} fontWeight={500} fontFamily={'body'}>
-                  Ayush Singh
+                  Ayush Sagar
                 </Heading>
                 <Text color={'gray.500'}>Full stack Developer</Text>
               </Stack>
