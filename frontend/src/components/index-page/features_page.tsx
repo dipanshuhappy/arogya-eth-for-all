@@ -214,7 +214,7 @@ function FeaturesPage() {
             <Flex justify={'center'} mt={-12}>
               <Avatar
                 size={'xl'}
-                src={'/assets/images/fullstack.jpgs'}
+                src={'/assets/images/fullstack.jpg'}
                 // alt={'Author'}
                 css={{
                   border: '2px solid white',
